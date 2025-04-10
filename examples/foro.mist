@@ -1,3 +1,2 @@
-(for i: 1 to 5 by 1
-  println(1)
-)
+loc.name = "Kumaraswamy!"
+println(loc.name)

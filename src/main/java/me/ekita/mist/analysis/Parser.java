@@ -79,7 +79,12 @@ public class Parser {
 
   public Expr parseTerm() {
     Token token = eat();
-    if (token.type == Type.OPEN_CURVE) {
+    if (token.hasFlag(Flag.CONTEXT)) {
+      // loc or glob keyword
+      expect(Type.DOT);
+      String name = readAlpha();
+      return new Var(token, token.type == Type.GLOBAL, name);
+    } else if (token.type == Type.OPEN_CURVE) {
       Expr expr = parseStatement();
       expect(Type.CLOSE_CURVE);
       return expr;

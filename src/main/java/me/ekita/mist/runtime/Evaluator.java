@@ -5,6 +5,7 @@ import me.ekita.mist.definitions.DefinitionGroup;
 import me.ekita.mist.definitions.predef.StandardDefinitionGroup;
 import me.ekita.mist.definitions.predef.UserDefinitionGroup;
 import me.ekita.mist.expr.*;
+import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Type;
 
 import java.util.ArrayList;
@@ -24,10 +25,16 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
-  public Number number(Num num) {
+  public RNumber number(Num num) {
     // Using ternary operator will mess up coercion
-    if (num.isFloat) return Double.parseDouble(num.value);
-    return Long.parseLong(num.value);
+    if (num.isFloat) return new RNumber(Double.parseDouble(num.value));
+    return new RNumber(Long.parseLong(num.value));
+  }
+
+  private RNumber numericExpr(Expr expr) {
+    Object result = expr.accept(this);
+    if (result instanceof RNumber) return (RNumber) result;
+    throw new RuntimeException("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
   @Override
@@ -41,32 +48,38 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
-  public Number binary(Binary binary) {
-    Number left = (Number) binary.left.accept(this);
-    Number right = (Number) binary.right.accept(this);
-    return binaryOp(binary.type, left, right);
+  public Object binary(Binary binary) {
+    Expr left = binary.left;
+    Expr right = binary.right;
+    switch (binary.type) {
+      case PLUS:
+        return numericExpr(left).add(numericExpr(right));
+      case NEGATE:
+        return numericExpr(left).sub(numericExpr(right));
+      case TIMES:
+        return numericExpr(left).mul(numericExpr(right));
+      case SLASH:
+        return numericExpr(left).div(numericExpr(right));
+      case POWER:
+        return numericExpr(left).pow(numericExpr(right));
+      case ASSIGNMENT:
+        Var var = (Var) left;
+        Object result = right.accept(this);
+        setVar(var.global, var.name, result);
+        return result;
+      default:
+        throw new RuntimeException("Unknown operator type: " + binary.type);
+    }
   }
 
-  private Number binaryOp(Type type, Number left, Number right) {
-    switch (type) {
-      case PLUS:
-        if (left instanceof Long && right instanceof Long) return left.longValue() + right.longValue();
-        return left.doubleValue() + right.doubleValue();
-      case NEGATE:
-        if (left instanceof Long && right instanceof Long) return left.longValue() - right.longValue();
-        return left.doubleValue() - right.doubleValue();
-      case TIMES:
-        if (left instanceof Long && right instanceof Long) return left.longValue() * right.longValue();
-        return left.doubleValue() * right.doubleValue();
-      case SLASH:
-        if (left instanceof Long && right instanceof Long) return left.longValue() / right.longValue();
-        return left.doubleValue() / right.doubleValue();
-      case POWER:
-        if (left instanceof Long && right instanceof Long) return Math.pow(left.longValue(), right.longValue());
-        return Math.pow(left.doubleValue(), right.doubleValue());
-      default:
-        throw new RuntimeException("Unknown operator type: " + type);
-    }
+  @Override
+  public Object varExpr(Var v) {
+    // here'll we'll simply return the value
+    return null;
+  }
+
+  public void setVar(boolean global, String name, Object value) {
+    // TODO!
   }
 
   @Override
@@ -77,21 +90,21 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object forLoop(For f) {
-    Number current = ((Number) f.from.accept(this));
-    Number to = ((Number) f.to.accept(this));
-    Number by = ((Number) f.by.accept(this));
+    RNumber current = ((RNumber) f.from.accept(this));
+    RNumber to = ((RNumber) f.to.accept(this));
+    RNumber by = ((RNumber) f.by.accept(this));
 
-    if (current.doubleValue() <= to.doubleValue()) {
+    if (current.compareTo(to) <= 0) {
       // a forward loop
-      while (current.doubleValue() < to.doubleValue()) {
+      while (current.compareTo(to) < 0) {
         f.body.accept(this);
-        current = binaryOp(Type.PLUS, current, by);
+        current = current.add(by);
       }
     } else {
       // a backward loop
-      while (current.doubleValue() > to.doubleValue()) {
+      while (current.compareTo(to) > 0) {
         f.body.accept(this);
-        current = binaryOp(Type.NEGATE, current, by);;
+        current = current.sub(by);
       }
     }
     return null;

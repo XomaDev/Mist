@@ -3,6 +3,7 @@ package me.ekita.mist.syntax;
 import java.util.HashMap;
 
 public enum Type {
+  VAR,
   LOGICAL_AND, LOGICAL_OR,
   //BITWISE_AND, BITWISE_OR, BITWISE_XOR, <-- moved to math.and(), math.or(), math.xor() function
 
@@ -91,6 +92,8 @@ public enum Type {
     KEYWORDS = new HashMap<String, StaticToken>() {{
       put("true", new StaticToken(M_TRUE, Flag.VALUE, Flag.M_BOOL));
       put("false", new StaticToken(M_FALSE, Flag.VALUE, Flag.M_BOOL));
+
+      put("var", new StaticToken(VAR));
 
       put("glob", new StaticToken(GLOBAL, Flag.CONTEXT));
       put("loc", new StaticToken(LOCAL, Flag.CONTEXT));

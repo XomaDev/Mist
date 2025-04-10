@@ -19,6 +19,8 @@ public abstract class Expr {
 
     R binary(Binary binary);
 
+    R varExpr(Var v);
+
     R statements(Statements statements);
 
     R forLoop(For f);
