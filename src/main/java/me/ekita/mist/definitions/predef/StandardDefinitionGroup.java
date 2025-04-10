@@ -1,11 +1,11 @@
-package me.ekita.mist.definitions.standard;
+package me.ekita.mist.definitions.predef;
 
 import me.ekita.mist.definitions.Definition;
 import me.ekita.mist.definitions.DefinitionGroup;
 
 import java.util.HashMap;
 
-public class StandardDefinition extends DefinitionGroup {
+public class StandardDefinitionGroup extends DefinitionGroup {
 
   private static final Definition println = new Definition("println", 1) {
     @Override
@@ -17,12 +17,12 @@ public class StandardDefinition extends DefinitionGroup {
 
   private static final HashMap<String, Definition> definitions = new HashMap<>();
 
-  private static void addDefinition(String name, int paramCount, Definition def) {
+  private static void define(String name, int paramCount, Definition def) {
     definitions.put(paramCount + name, def);
   }
 
   static {
-    addDefinition("println", 1, println);
+    define("println", 1, println);
   }
 
   @Override

@@ -31,9 +31,11 @@ public enum Type {
 
   IF, ELSE,
   TO, BY, IN, WITH,
+  COLON,
 
   MAKE_LIST, MAKE_DICT,
 
+  FOR,
   WHEN,
   VOID, RET,
 
@@ -74,6 +76,7 @@ public enum Type {
       put("!", new StaticToken(Type.EXCLAMATION, Flag.UNARY));
 
       put(".", new StaticToken(Type.DOT));
+      put(":", new StaticToken(Type.COLON));
 
       put("(", new StaticToken(Type.OPEN_CURVE));
       put(")", new StaticToken(Type.CLOSE_CURVE));
@@ -104,6 +107,7 @@ public enum Type {
       put("in", new StaticToken(IN));
       put("with", new StaticToken(WITH));
 
+      put("for", new StaticToken(FOR));
       put("when", new StaticToken(WHEN, Flag.WHEN));
       put("void", new StaticToken(VOID, Flag.PROCEDURE_HEADER));
       put("ret", new StaticToken(RET, Flag.PROCEDURE_HEADER));

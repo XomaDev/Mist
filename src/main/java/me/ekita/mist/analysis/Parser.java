@@ -26,16 +26,40 @@ public class Parser {
     return new Statements(expressions);
   }
 
-  public Expr parseStatement() {
+  private Expr parseStatement() {
     Token token = eat();
     switch (token.type) {
+      case FOR:
+        return forExpr(token);
       default:
         back();
         return parseExpr();
     }
   }
 
-  public Expr parseExpr() {
+  private For forExpr(Token token) {
+    String name = readAlpha();
+    expect(Type.COLON);
+    Expr from = parseExpr();
+    expect(Type.TO);
+    Expr to = parseExpr();
+    Expr by = null;
+    if (peek().type == Type.BY) {
+      skip();
+      by = parseExpr();
+    }
+    return new For(token, name, from, to, by, body());
+  }
+
+  private Statements body() {
+    List<Expr> expressions = new ArrayList<>();
+    while (notEOF() && !isNext(Type.CLOSE_CURVE)) {
+      expressions.add(parseExpr());
+    }
+    return new Statements(expressions);
+  }
+
+  private Expr parseExpr() {
     Expr left = parseElement();
     while (notEOF()) {
       Token op = peek();
@@ -55,11 +79,15 @@ public class Parser {
 
   public Expr parseTerm() {
     Token token = eat();
-    if (token.hasFlag(Flag.VALUE)) {
+    if (token.type == Type.OPEN_CURVE) {
+      Expr expr = parseStatement();
+      expect(Type.CLOSE_CURVE);
+      return expr;
+    } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
       if (expr instanceof Name && notEOF() && isNext(Type.OPEN_CURVE)) {
         // a function call! wohoo!
-        return new MethodCall(token, (String) token.data, arguments());
+        return new FunctionCall(token, (String) token.data, arguments());
       }
       return expr;
     }

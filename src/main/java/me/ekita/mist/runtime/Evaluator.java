@@ -2,21 +2,32 @@ package me.ekita.mist.runtime;
 
 import me.ekita.mist.definitions.Definition;
 import me.ekita.mist.definitions.DefinitionGroup;
-import me.ekita.mist.definitions.standard.StandardDefinition;
+import me.ekita.mist.definitions.predef.StandardDefinitionGroup;
+import me.ekita.mist.definitions.predef.UserDefinitionGroup;
 import me.ekita.mist.expr.*;
+import me.ekita.mist.syntax.Type;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Evaluator implements Expr.Visitor<Object> {
 
-  private final DefinitionGroup defaultDefnGroup = new StandardDefinition();
+  private final List<DefinitionGroup> definitionGroups = new ArrayList<>();
+
+  public Evaluator() {
+    definitionGroups.add(new StandardDefinitionGroup());
+    definitionGroups.add(new UserDefinitionGroup());
+  }
+
+  public void addDefinitionGroup(DefinitionGroup group) {
+    definitionGroups.add(group);
+  }
 
   @Override
   public Number number(Num num) {
-    return num.isFloat ? new BigDecimal(num.value) : new BigInteger(num.value);
+    // Using ternary operator will mess up coercion
+    if (num.isFloat) return Double.parseDouble(num.value);
+    return Long.parseLong(num.value);
   }
 
   @Override
@@ -33,67 +44,78 @@ public class Evaluator implements Expr.Visitor<Object> {
   public Number binary(Binary binary) {
     Number left = (Number) binary.left.accept(this);
     Number right = (Number) binary.right.accept(this);
-    switch (binary.type) {
+    return binaryOp(binary.type, left, right);
+  }
+
+  private Number binaryOp(Type type, Number left, Number right) {
+    switch (type) {
       case PLUS:
-        if (left instanceof BigInteger && right instanceof BigInteger)
-          return ((BigInteger) left).add((BigInteger) right);
-        if (left instanceof BigDecimal && right instanceof BigDecimal)
-          return ((BigDecimal) left).add((BigDecimal) right);
-        if (left instanceof BigInteger)
-          return new BigDecimal((BigInteger) left).add((BigDecimal) right);
-        assert left instanceof BigDecimal;
-        return ((BigDecimal) left).add(new BigDecimal((BigInteger) right));
+        if (left instanceof Long && right instanceof Long) return left.longValue() + right.longValue();
+        return left.doubleValue() + right.doubleValue();
       case NEGATE:
-        if (left instanceof BigInteger && right instanceof BigInteger)
-          return ((BigInteger) left).subtract((BigInteger) right);
-        if (left instanceof BigDecimal && right instanceof BigDecimal)
-          return ((BigDecimal) left).subtract((BigDecimal) right);
-        if (left instanceof BigInteger)
-          return new BigDecimal((BigInteger) left).subtract((BigDecimal) right);
-        assert left instanceof BigDecimal;
-        return ((BigDecimal) left).subtract(new BigDecimal((BigInteger) right));
+        if (left instanceof Long && right instanceof Long) return left.longValue() - right.longValue();
+        return left.doubleValue() - right.doubleValue();
       case TIMES:
-        if (left instanceof BigInteger && right instanceof BigInteger)
-          return ((BigInteger) left).multiply((BigInteger) right);
-        if (left instanceof BigDecimal && right instanceof BigDecimal)
-          return ((BigDecimal) left).multiply((BigDecimal) right);
-        if (left instanceof BigInteger)
-          return new BigDecimal((BigInteger) left).multiply((BigDecimal) right);
-        assert left instanceof BigDecimal;
-        return ((BigDecimal) left).multiply(new BigDecimal((BigInteger) right));
+        if (left instanceof Long && right instanceof Long) return left.longValue() * right.longValue();
+        return left.doubleValue() * right.doubleValue();
       case SLASH:
-        if (left instanceof BigInteger && right instanceof BigInteger)
-          return ((BigInteger) left).divide((BigInteger) right);
-        if (left instanceof BigDecimal && right instanceof BigDecimal)
-          return ((BigDecimal) left).divide((BigDecimal) right, MathContext.DECIMAL128);
-        if (left instanceof BigInteger)
-          return new BigDecimal((BigInteger) left).divide((BigDecimal) right, MathContext.DECIMAL128);
-        assert left instanceof BigDecimal;
-        return ((BigDecimal) left).divide(new BigDecimal((BigInteger) right), MathContext.DECIMAL128);
+        if (left instanceof Long && right instanceof Long) return left.longValue() / right.longValue();
+        return left.doubleValue() / right.doubleValue();
+      case POWER:
+        if (left instanceof Long && right instanceof Long) return Math.pow(left.longValue(), right.longValue());
+        return Math.pow(left.doubleValue(), right.doubleValue());
+      default:
+        throw new RuntimeException("Unknown operator type: " + type);
     }
-    return null;
   }
 
   @Override
   public Object statements(Statements statements) {
-    for (Expr expr : statements.expressions) {
-      expr.accept(this);
+    for (Expr expr : statements.expressions) expr.accept(this);
+    return null;
+  }
+
+  @Override
+  public Object forLoop(For f) {
+    Number current = ((Number) f.from.accept(this));
+    Number to = ((Number) f.to.accept(this));
+    Number by = ((Number) f.by.accept(this));
+
+    if (current.doubleValue() <= to.doubleValue()) {
+      // a forward loop
+      while (current.doubleValue() < to.doubleValue()) {
+        f.body.accept(this);
+        current = binaryOp(Type.PLUS, current, by);
+      }
+    } else {
+      // a backward loop
+      while (current.doubleValue() > to.doubleValue()) {
+        f.body.accept(this);
+        current = binaryOp(Type.NEGATE, current, by);;
+      }
     }
     return null;
   }
 
   @Override
-  public Object methodCall(MethodCall call) {
+  public Object functionCall(FunctionCall call) {
     List<Expr> args = call.arguments;
     int argSize = args.size();
-    Definition def = defaultDefnGroup.get(call.name, argSize);
-    if (def == null) {
-      throw new RuntimeException("Could not find method named " + call.name + " of " + argSize + " arguments");
+    // search for the function down the hierarchy
+    for (DefinitionGroup group : definitionGroups) {
+      Definition def = group.get(call.name, argSize);
+      Object[] evaluated = new Object[argSize];
+      for (int i = 0; i < argSize; i++) {
+        evaluated[i] = args.get(i).accept(this);
+      }
+      return def.call(evaluated);
     }
-    Object[] evaluated = new Object[argSize];
-    for (int i = 0; i < argSize; i++) {
-      evaluated[i] = args.get(i).accept(this);
-    }
-    return def.call(evaluated);
+    throw new RuntimeException("Could not find method named " + call.name + " of " + argSize + " arguments");
+  }
+
+  @Override
+  public Object function(Function func) {
+    UserDefinitionGroup.define(func.name, func.returning, func.parameterNames, func.body, this);
+    return null;
   }
 }

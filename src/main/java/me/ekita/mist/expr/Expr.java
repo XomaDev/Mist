@@ -20,7 +20,11 @@ public abstract class Expr {
     R binary(Binary binary);
 
     R statements(Statements statements);
-    R methodCall(MethodCall call);
+
+    R forLoop(For f);
+
+    R functionCall(FunctionCall call);
+    R function(Function func);
   }
 
   public abstract <R> R accept(Visitor<R> v);

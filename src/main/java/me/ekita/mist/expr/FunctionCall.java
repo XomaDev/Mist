@@ -4,12 +4,12 @@ import me.ekita.mist.syntax.Token;
 
 import java.util.List;
 
-public class MethodCall extends Expr {
+public class FunctionCall extends Expr {
 
   public final String name;
   public final List<Expr> arguments;
 
-  public MethodCall(Token token, String name, List<Expr> arguments) {
+  public FunctionCall(Token token, String name, List<Expr> arguments) {
     super(token);
     this.name = name;
     this.arguments = arguments;
@@ -17,6 +17,6 @@ public class MethodCall extends Expr {
 
   @Override
   public <R> R accept(Visitor<R> v) {
-    return v.methodCall(this);
+    return v.functionCall(this);
   }
 }
