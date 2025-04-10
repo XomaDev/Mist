@@ -15,6 +15,7 @@ public abstract class Expr {
   public interface Visitor<R> {
     R number(Num num);
     R bool(Bool bool);
+    R text(Text text);
 
     R binary(Binary binary);
 

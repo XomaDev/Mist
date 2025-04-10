@@ -8,7 +8,6 @@ import me.ekita.mist.expr.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Evaluator implements Expr.Visitor<Object> {
@@ -23,6 +22,11 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Boolean bool(Bool bool) {
     return bool.value;
+  }
+
+  @Override
+  public Object text(Text text) {
+    return text.content;
   }
 
   @Override

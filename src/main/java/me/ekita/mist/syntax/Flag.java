@@ -12,7 +12,6 @@ public enum Flag {
 
   M_BOOL,
   VALUE,
-  CONSTANT_VALUE,
 
   WHEN,
   PROCEDURE_HEADER,

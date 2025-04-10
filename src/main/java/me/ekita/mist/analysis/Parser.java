@@ -73,6 +73,8 @@ public class Parser {
         return new Bool(token, token.type == Type.M_TRUE);
       case M_NUM:
         return new Num(token, (String) token.data);
+      case M_TEXT:
+        return new Text(token, (String) token.data);
       case ALPHA:
         return new Name(token);
       default:
