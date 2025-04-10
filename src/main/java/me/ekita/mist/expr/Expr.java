@@ -1,0 +1,24 @@
+package me.ekita.mist.expr;
+
+import me.ekita.mist.syntax.Token;
+import org.jetbrains.annotations.Nullable;
+
+public abstract class Expr {
+
+  @Nullable
+  public final Token token;
+
+  public Expr(@Nullable Token token) {
+    this.token = token;
+  }
+
+  public interface Visitor<R> {
+    R number(Num num);
+    R bool(Bool bool);
+
+    R binary(Binary binary);
+    R statements(Statements statements);
+  }
+
+  public abstract <R> R accept(Visitor<R> v);
+}
