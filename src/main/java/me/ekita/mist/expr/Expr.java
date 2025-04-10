@@ -17,7 +17,9 @@ public abstract class Expr {
     R bool(Bool bool);
 
     R binary(Binary binary);
+
     R statements(Statements statements);
+    R methodCall(MethodCall call);
   }
 
   public abstract <R> R accept(Visitor<R> v);

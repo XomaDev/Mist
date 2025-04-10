@@ -50,7 +50,7 @@ public enum Type {
   static final HashMap<String, StaticToken> KEYWORDS;
 
   static {
-    SYMBOLS = new HashMap<>() {{
+    SYMBOLS = new HashMap<String, StaticToken>() {{
       put("=", new StaticToken(Type.ASSIGNMENT, Flag.ASSIGNMENT_TYPE, Flag.OPERATOR));
 
       put("or", new StaticToken(LOGICAL_OR, Flag.LOGICAL_OR, Flag.OPERATOR));
@@ -85,7 +85,7 @@ public enum Type {
       put(",", new StaticToken(Type.COMMA));
     }};
 
-    KEYWORDS = new HashMap<>() {{
+    KEYWORDS = new HashMap<String, StaticToken>() {{
       put("true", new StaticToken(M_TRUE, Flag.VALUE, Flag.M_BOOL));
       put("false", new StaticToken(M_FALSE, Flag.VALUE, Flag.M_BOOL));
 

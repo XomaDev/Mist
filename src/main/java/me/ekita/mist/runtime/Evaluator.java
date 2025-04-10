@@ -1,12 +1,19 @@
 package me.ekita.mist.runtime;
 
+import me.ekita.mist.definitions.Definition;
+import me.ekita.mist.definitions.DefinitionGroup;
+import me.ekita.mist.definitions.standard.StandardDefinition;
 import me.ekita.mist.expr.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Evaluator implements Expr.Visitor<Object> {
+
+  private final DefinitionGroup defaultDefnGroup = new StandardDefinition();
 
   @Override
   public Number number(Num num) {
@@ -66,8 +73,23 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object statements(Statements statements) {
     for (Expr expr : statements.expressions) {
-      System.out.println(expr.accept(this));
+      expr.accept(this);
     }
     return null;
+  }
+
+  @Override
+  public Object methodCall(MethodCall call) {
+    List<Expr> args = call.arguments;
+    int argSize = args.size();
+    Definition def = defaultDefnGroup.get(call.name, argSize);
+    if (def == null) {
+      throw new RuntimeException("Could not find method named " + call.name + " of " + argSize + " arguments");
+    }
+    Object[] evaluated = new Object[argSize];
+    for (int i = 0; i < argSize; i++) {
+      evaluated[i] = args.get(i).accept(this);
+    }
+    return def.call(evaluated);
   }
 }

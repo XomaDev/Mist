@@ -56,7 +56,12 @@ public class Parser {
   public Expr parseTerm() {
     Token token = eat();
     if (token.hasFlag(Flag.VALUE)) {
-      return parseValue(token);
+      Expr expr = parseValue(token);
+      if (expr instanceof Name && notEOF() && isNext(Type.OPEN_CURVE)) {
+        // a function call! wohoo!
+        return new MethodCall(token, (String) token.data, arguments());
+      }
+      return expr;
     }
     return token.error("Unexpected token");
   }
@@ -68,48 +73,66 @@ public class Parser {
         return new Bool(token, token.type == Type.M_TRUE);
       case M_NUM:
         return new Num(token, (String) token.data);
+      case ALPHA:
+        return new Name(token);
       default:
         return token.error("Unknown value type");
     }
   }
 
-  public String readAlpha() {
+  private List<Expr> arguments() {
+    expect(Type.OPEN_CURVE);
+    if (isNext(Type.CLOSE_CURVE)) {
+      skip();
+      return new ArrayList<>();
+    }
+    List<Expr> arguments = new ArrayList<>();
+    while (notEOF()) {
+      arguments.add(parseStatement());
+      if (!isNext(Type.COMMA)) break;
+      skip();
+    }
+    expect(Type.CLOSE_CURVE);
+    return arguments;
+  }
+
+  private String readAlpha() {
     Token token = tokens.get(index++);
     if (token.type == Type.ALPHA) return (String) token.data;
     return token.error("Expected type alpha but got " + token.type);
   }
 
-  public Token expect(Type type) {
+  private Token expect(Type type) {
     Token token = tokens.get(index++);
     if (token.type == type) return token;
     return token.error("Expected token type " + type + " but got " + token.type);
   }
 
-  public boolean isNext(Type type) {
+  private boolean isNext(Type type) {
     return tokens.get(index).type == type;
   }
 
-  public void back() {
+  private void back() {
     index--;
   }
 
-  public void skip() {
+  private void skip() {
     index++;
   }
 
-  public Token eat() {
+  private Token eat() {
     return tokens.get(index++);
   }
 
-  public Token peek() {
+  private Token peek() {
     return tokens.get(index);
   }
 
-  public boolean notEOF() {
+  private boolean notEOF() {
     return index < tokens.size();
   }
 
-  public boolean isEOF() {
+  private boolean isEOF() {
     return index == size;
   }
 }
