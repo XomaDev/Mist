@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static me.ekita.mist.modules.ModuleHelper.asList;
+
 public class ListModule extends Module {
 
   public ListModule() {
@@ -125,11 +127,6 @@ public class ListModule extends Module {
         return copy;
       }
     });
-  }
-
-  private static List<Object> asList(Token token, Object value) {
-    if (value instanceof List<?>) return (List<Object>) value;
-    return token.error("Expected a list but got " + value);
   }
 
   @Override

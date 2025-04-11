@@ -21,6 +21,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   public Evaluator() {
     modules.put("Sys", new SysModule());
     modules.put("Math", new MathModule());
+    modules.put("Text", new TextModule());
     modules.put("List", new ListModule());
   }
 
@@ -106,6 +107,8 @@ public class Evaluator implements Expr.Visitor<Object> {
         Object right = bin.right.accept(this);
         if (bin.type == Type.EQUALS) return valueEquals(left, right);
         return !valueEquals(left, right);
+      // TODO:
+      //  We gotta support Text as well!
       case LOGICAL_OR:
         return boolExpr(t, bin.left) || boolExpr(t, bin.right);
       case LOGICAL_AND:
