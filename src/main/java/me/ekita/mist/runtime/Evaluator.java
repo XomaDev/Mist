@@ -7,6 +7,7 @@ import me.ekita.mist.definitions.predef.UserDefinitionGroup;
 import me.ekita.mist.expr.*;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.RNumber;
+import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
 
 import java.util.ArrayList;
@@ -34,10 +35,16 @@ public class Evaluator implements Expr.Visitor<Object> {
     return new RNumber(Long.parseLong(num.value));
   }
 
-  private RNumber numericExpr(Expr expr) {
+  private RNumber numericExpr(Token token, Expr expr) {
     Object result = expr.accept(this);
     if (result instanceof RNumber) return (RNumber) result;
-    throw new RuntimeException("Expected RNumber but got " + result + " of class " + result.getClass());
+    return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
+  }
+
+  private boolean boolExpr(Token token, Expr expr) {
+    Object result = expr.accept(this);
+    if (result instanceof Boolean) return (boolean) result;
+    return token.error("Expected Bool but got " + result + " of class " + result.getClass());
   }
 
   @Override
@@ -57,17 +64,18 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object binary(Binary bin) {
+    Token t = bin.token;
     switch (bin.type) {
       case PLUS:
-        return numericExpr(bin.left).add(numericExpr(bin.right));
+        return numericExpr(t, bin.left).add(numericExpr(t, bin.right));
       case NEGATE:
-        return numericExpr(bin.left).sub(numericExpr(bin.right));
+        return numericExpr(t, bin.left).sub(numericExpr(t, bin.right));
       case TIMES:
-        return numericExpr(bin.left).mul(numericExpr(bin.right));
+        return numericExpr(t, bin.left).mul(numericExpr(t, bin.right));
       case SLASH:
-        return numericExpr(bin.left).div(numericExpr(bin.right));
+        return numericExpr(t, bin.left).div(numericExpr(t, bin.right));
       case POWER:
-        return numericExpr(bin.left).pow(numericExpr(bin.right));
+        return numericExpr(t, bin.left).pow(numericExpr(t, bin.right));
       case ASSIGNMENT:
         Object result = bin.right.accept(this);
         if (bin.left instanceof GetVar) {
@@ -83,10 +91,18 @@ public class Evaluator implements Expr.Visitor<Object> {
         Object right = bin.right.accept(this);
         if (bin.type == Type.EQUALS) return valueEquals(left, right);
         return !valueEquals(left, right);
+      case LOGICAL_OR:
+        return boolExpr(t, bin.left) || boolExpr(t, bin.right);
+      case LOGICAL_AND:
+        return boolExpr(t, bin.left) && boolExpr(t, bin.right);
       case LEFT_DIAMOND:
-        return numericExpr(bin.left).compareTo(numericExpr(bin.right)) < 0;
+        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) < 0;
       case RIGHT_DIAMOND:
-        return numericExpr(bin.left).compareTo(numericExpr(bin.right)) > 0;
+        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) > 0;
+      case LESSER_THAN_EQUALS:
+        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) <= 0;
+      case GREATER_THAN_EQUALS:
+        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) >= 0;
       default:
         throw new RuntimeException("Unknown operator type: " + bin.type);
     }
@@ -120,14 +136,12 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object ifExpr(IfExpr ifExpr) {
-    Object result = ifExpr.condition.accept(this);
-    if (!(result instanceof Boolean))
-      ifExpr.token.error("Expected type bool for if-expr but got " + result + " of class " + result.getClass());
+    boolean result = boolExpr(ifExpr.token, ifExpr.condition);
     Expr thenBody = ifExpr.thenExpr;
     Expr elseBody = ifExpr.elseExpr;
 
     Object exprResult = null;
-    if ((boolean) result) {
+    if (result) {
       memory.enterScope();
       exprResult = thenBody.accept(this);
       memory.leaveScope();

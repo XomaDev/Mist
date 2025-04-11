@@ -3,6 +3,7 @@ package me.ekita.mist.definitions.predef;
 import me.ekita.mist.definitions.Definition;
 import me.ekita.mist.definitions.DefinitionGroup;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class StandardDefinitionGroup extends DefinitionGroup {
