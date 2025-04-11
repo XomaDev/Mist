@@ -25,6 +25,7 @@ public abstract class Expr {
 
     R statements(Statements statements);
 
+    R ifExpr(IfExpr ifExpr);
     R forLoop(For f);
 
     R functionCall(FunctionCall call);

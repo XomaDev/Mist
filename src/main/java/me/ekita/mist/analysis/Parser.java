@@ -34,12 +34,33 @@ public class Parser {
   private Expr parseStatement() {
     Token token = eat();
     switch (token.type) {
+      case IF:
+        return ifExpr(token);
       case FOR:
         return forExpr(token);
       default:
         back();
         return parseExpr();
     }
+  }
+
+  private Expr ifExpr(Token token) {
+    Expr condition = parseExpr();
+    expect(Type.COLON);
+    manager.enterScope(false);
+    Expr thenBody = body();
+    manager.leaveScope(false);
+
+    Expr elseBody = null;
+    if (isNext(Type.ELIF)) elseBody = ifExpr(eat());
+    else if (isNext(Type.ELSE)) {
+      skip();
+      expect(Type.COLON);
+      manager.enterScope(false);
+      elseBody = body();
+      manager.leaveScope(false);
+    }
+    return new IfExpr(token, condition, thenBody, elseBody);
   }
 
   private For forExpr(Token token) {
@@ -62,7 +83,9 @@ public class Parser {
 
   private Statements body() {
     List<Expr> expressions = new ArrayList<>();
-    while (notEOF() && !isNext(Type.CLOSE_CURVE)) {
+    while (notEOF()) {
+      Token p = peek();
+      if (p.type == Type.CLOSE_CURVE || p.hasFlag(Flag.NEW_BODY)) break;
       expressions.add(parseExpr());
     }
     return new Statements(expressions);

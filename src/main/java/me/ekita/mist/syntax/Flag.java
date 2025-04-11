@@ -15,4 +15,7 @@ public enum Flag {
 
   WHEN,
   PROCEDURE_HEADER,
+
+  // A new body starts from here e.g. `else` and `elif`
+  NEW_BODY,
 }

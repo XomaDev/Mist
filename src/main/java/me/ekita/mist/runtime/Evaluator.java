@@ -7,6 +7,7 @@ import me.ekita.mist.definitions.predef.UserDefinitionGroup;
 import me.ekita.mist.expr.*;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.RNumber;
+import me.ekita.mist.syntax.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,32 +56,46 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
-  public Object binary(Binary binary) {
-    Expr left = binary.left;
-    Expr right = binary.right;
-    switch (binary.type) {
+  public Object binary(Binary bin) {
+    switch (bin.type) {
       case PLUS:
-        return numericExpr(left).add(numericExpr(right));
+        return numericExpr(bin.left).add(numericExpr(bin.right));
       case NEGATE:
-        return numericExpr(left).sub(numericExpr(right));
+        return numericExpr(bin.left).sub(numericExpr(bin.right));
       case TIMES:
-        return numericExpr(left).mul(numericExpr(right));
+        return numericExpr(bin.left).mul(numericExpr(bin.right));
       case SLASH:
-        return numericExpr(left).div(numericExpr(right));
+        return numericExpr(bin.left).div(numericExpr(bin.right));
       case POWER:
-        return numericExpr(left).pow(numericExpr(right));
+        return numericExpr(bin.left).pow(numericExpr(bin.right));
       case ASSIGNMENT:
-        Object result = right.accept(this);
-        if (left instanceof GetVar) {
-          GetVar getVar = (GetVar) left;
+        Object result = bin.right.accept(this);
+        if (bin.left instanceof GetVar) {
+          GetVar getVar = (GetVar) bin.left;
           memory.declareVar(getVar.global, getVar.name, result);
           return result;
         }
-        memory.declareVar(false, (String) left.accept(this), result);
+        memory.declareVar(false, (String) bin.left.accept(this), result);
         return result;
+      case EQUALS:
+      case NOT_EQUALS:
+        Object left = bin.left.accept(this);
+        Object right = bin.right.accept(this);
+        if (bin.type == Type.EQUALS) return valueEquals(left, right);
+        return !valueEquals(left, right);
+      case LEFT_DIAMOND:
+        return numericExpr(bin.left).compareTo(numericExpr(bin.right)) < 0;
+      case RIGHT_DIAMOND:
+        return numericExpr(bin.left).compareTo(numericExpr(bin.right)) > 0;
       default:
-        throw new RuntimeException("Unknown operator type: " + binary.type);
+        throw new RuntimeException("Unknown operator type: " + bin.type);
     }
+  }
+
+  public boolean valueEquals(Object left, Object right) {
+    if (left instanceof RNumber && right instanceof RNumber)
+      return ((RNumber) left).compareTo((RNumber) right) == 0;
+    return left == right;
   }
 
   @Override
@@ -99,6 +114,27 @@ public class Evaluator implements Expr.Visitor<Object> {
   public Object statements(Statements statements) {
     for (Expr expr : statements.expressions) expr.accept(this);
     return null;
+  }
+
+  @Override
+  public Object ifExpr(IfExpr ifExpr) {
+    Object result = ifExpr.condition.accept(this);
+    if (!(result instanceof Boolean))
+      ifExpr.token.error("Expected type bool for if-expr but got " + result + " of class " + result.getClass());
+    Expr thenBody = ifExpr.thenExpr;
+    Expr elseBody = ifExpr.elseExpr;
+
+    Object exprResult = null;
+    if ((boolean) result) {
+      memory.enterScope();
+      exprResult = thenBody.accept(this);
+      memory.leaveScope();
+    } else if (elseBody != null) {
+      memory.enterScope();
+      exprResult = elseBody.accept(this);
+      memory.leaveScope();
+    }
+    return exprResult;
   }
 
   @Override

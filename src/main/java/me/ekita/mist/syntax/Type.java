@@ -29,7 +29,7 @@ public enum Type {
 
   VAR, GLOBAL,
 
-  IF, ELSE,
+  IF, ELIF, ELSE,
   TO, BY, IN, WITH,
   COLON,
 
@@ -96,7 +96,8 @@ public enum Type {
       put("glob", new StaticToken(GLOBAL, Flag.CONTEXT));
 
       put("if", new StaticToken(IF));
-      put("else", new StaticToken(ELSE));
+      put("elif", new StaticToken(ELIF, Flag.NEW_BODY));
+      put("else", new StaticToken(ELSE, Flag.NEW_BODY));
 
       put("return", new StaticToken(RETURN));
       put("break", new StaticToken(BREAK));
