@@ -61,6 +61,19 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
+  public Object unary(Unary unary) {
+    Token t = unary.token;
+    switch (unary.type) {
+      case NEGATE:
+        return numericExpr(t, unary.expr).negate();
+      case EXCLAMATION:
+        return !boolExpr(t, unary.expr);
+      default:
+        return t.error("Unknown unary operator type: " + unary.type);
+    }
+  }
+
+  @Override
   public Object binary(Binary bin) {
     Token t = bin.token;
     switch (bin.type) {
@@ -102,7 +115,7 @@ public class Evaluator implements Expr.Visitor<Object> {
       case GREATER_THAN_EQUALS:
         return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) >= 0;
       default:
-        throw new RuntimeException("Unknown operator type: " + bin.type);
+        return t.error("Unknown binary operator type: " + bin.type);
     }
   }
 

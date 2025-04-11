@@ -16,6 +16,11 @@ public class RNumber {
     return number.doubleValue();
   }
 
+  public RNumber negate() {
+    if (number instanceof Long) return new RNumber(-number.longValue());
+    return new RNumber(-number.doubleValue());
+  }
+
   public RNumber add(RNumber other) {
     if (number instanceof Long && other.number instanceof Long)
       return new RNumber(number.longValue() + other.longValue());

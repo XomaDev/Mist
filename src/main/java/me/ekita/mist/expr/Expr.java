@@ -18,6 +18,7 @@ public abstract class Expr {
     R text(Text text);
     R name(Name name);
 
+    R unary(Unary unary);
     R binary(Binary binary);
 
     R getVr(GetVar v);
@@ -30,6 +31,7 @@ public abstract class Expr {
 
     R functionCall(FunctionCall call);
     R moduleCall(ModuleCall call);
+
     R function(Function func);
   }
 

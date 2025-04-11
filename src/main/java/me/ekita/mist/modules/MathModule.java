@@ -6,12 +6,9 @@ import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MathModule extends Module {
-
-  private static final Random RANDOM = new Random();
 
   public MathModule() {
     define("bitwiseAnd", 2, new ModFunction() {

@@ -51,7 +51,7 @@ public class Parser {
   private Expr fnExpr(Token token) {
     boolean returning = token.type == Type.RET;
     String name = readAlpha();
-    List<String> paramNames = isNext(Type.OPEN_CURVE) ? paramNames() : new ArrayList<>();
+    List<String> paramNames = isNext(Type.OPEN_CURVE) ? paramNames() : new ArrayList<String>();
     expect(Type.COLON);
 
     manager.enterScope(false);
@@ -163,6 +163,9 @@ public class Parser {
         ((Name) expr).invalidate(); // thi'll error out
       }
       return expr;
+    }
+    if (notEOF() && token.hasFlag(Flag.UNARY)) {
+      return new Unary(token, token.type, parseExpr());
     }
     return token.error("Unexpected token");
   }
