@@ -1,1 +1,2 @@
-sys.println(!true)
+list.emptyList()
+list.makeList()

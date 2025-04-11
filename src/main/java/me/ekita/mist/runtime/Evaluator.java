@@ -1,10 +1,7 @@
 package me.ekita.mist.runtime;
 
 import me.ekita.mist.expr.*;
-import me.ekita.mist.modules.MathModule;
-import me.ekita.mist.modules.ModFunction;
-import me.ekita.mist.modules.Module;
-import me.ekita.mist.modules.SysModule;
+import me.ekita.mist.modules.*;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
@@ -22,8 +19,9 @@ public class Evaluator implements Expr.Visitor<Object> {
   private final Map<String, Module> modules = new HashMap<>();
 
   public Evaluator() {
-    modules.put("sys", new SysModule());
-    modules.put("math", new MathModule());
+    modules.put("Sys", new SysModule());
+    modules.put("Math", new MathModule());
+    modules.put("List", new ListModule());
   }
 
   @Override
