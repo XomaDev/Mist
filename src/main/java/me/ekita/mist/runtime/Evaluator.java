@@ -213,7 +213,7 @@ public class Evaluator implements Expr.Visitor<Object> {
     ModFunction func = module.get(call.funcName, call.arguments.size());
     if (func == null)
       return call.token.error("Cannot find function " + call.funcName + " in module " + call.moduleName);
-    return func.call(this, call.arguments);
+    return func.call(call.token, this, call.arguments);
   }
 
   @Override
