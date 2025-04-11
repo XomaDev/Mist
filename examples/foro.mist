@@ -1,8 +1,7 @@
-var x = 5
-(if x < 2:
-  println("Maow!")
-elif x == 5:
-  println("Mikiki")
-else:
-  println("Katze!")
+(returning fib(n):
+  (if n < 2: n
+   else: fib(n - 1) + fib(n - 2)
+  )
 )
+
+println(fib(35))

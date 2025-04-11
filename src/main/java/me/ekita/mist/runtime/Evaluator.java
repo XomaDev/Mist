@@ -112,8 +112,10 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object statements(Statements statements) {
-    for (Expr expr : statements.expressions) expr.accept(this);
-    return null;
+    List<Expr> exprs = statements.expressions;
+    int until = exprs.size() - 1;
+    for (int i = 0; i < until; i++) exprs.get(i).accept(this);
+    return exprs.get(until).accept(this);
   }
 
   @Override
@@ -173,6 +175,7 @@ public class Evaluator implements Expr.Visitor<Object> {
     // search for the function down the hierarchy
     for (DefinitionGroup group : definitionGroups) {
       Definition def = group.get(call.name, argSize);
+      if (def == null) continue;
       Object[] evaluated = new Object[argSize];
       for (int i = 0; i < argSize; i++) {
         evaluated[i] = args.get(i).accept(this);
@@ -184,7 +187,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object function(Function func) {
-    UserDefinitionGroup.define(func.name, func.returning, func.parameterNames, func.body, this);
+    UserDefinitionGroup.define(func.name, func.returning, func.parameterNames, func.body, memory, this);
     return null;
   }
 }

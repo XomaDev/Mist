@@ -21,7 +21,11 @@ public class Mist {
       List<Token> tokens = new Lexer(content).tokens;
       System.out.println(tokens);
       Statements statements = new Parser(tokens).parse();
+
+      long start = System.currentTimeMillis();
       new Evaluator().statements(statements);
+      long end = System.currentTimeMillis();
+      System.out.println(end - start);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

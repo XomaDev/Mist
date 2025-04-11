@@ -3,6 +3,7 @@ package me.ekita.mist.definitions.predef;
 import me.ekita.mist.definitions.Definition;
 import me.ekita.mist.definitions.DefinitionGroup;
 import me.ekita.mist.expr.Expr;
+import me.ekita.mist.runtime.memory.Memory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +17,9 @@ public class UserDefinitionGroup extends DefinitionGroup {
                             boolean returning,
                             List<String> parameterNames,
                             Expr body,
+                            Memory memory,
                             Expr.Visitor<?> evaluator) {
-    definitions.put(parameterNames.size() + name, new UserDefinition(name, returning, parameterNames, body, evaluator));
+    definitions.put(parameterNames.size() + name, new UserDefinition(name, returning, parameterNames, body, memory, evaluator));
   }
 
   @Override

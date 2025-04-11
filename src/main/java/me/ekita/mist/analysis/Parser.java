@@ -18,6 +18,7 @@ public class Parser {
 
   public Parser(List<Token> tokens) {
     this.tokens = tokens;
+    this.size = tokens.size();
   }
 
   public Statements parse() {
@@ -38,10 +39,56 @@ public class Parser {
         return ifExpr(token);
       case FOR:
         return forExpr(token);
+      case VOID:
+      case RET:
+        return fnExpr(token);
       default:
         back();
         return parseExpr();
     }
+  }
+
+  private Expr fnExpr(Token token) {
+    boolean returning = token.type == Type.RET;
+    String name = readAlpha();
+    List<String> paramNames = isNext(Type.OPEN_CURVE) ? paramNames() : new ArrayList<>();
+    expect(Type.COLON);
+
+    manager.enterScope(false);
+    for (String param : paramNames) manager.defineVr(param);
+    Expr body = body();
+    manager.leaveScope(false);
+    return new Function(token, name, returning, paramNames, body);
+  }
+
+  private List<String> paramNames() {
+    expect(Type.OPEN_CURVE);
+    List<String> paramNames = new ArrayList<>();
+    while (notEOF()) {
+      paramNames.add(readAlpha());
+      if (!isNext(Type.COMMA)) break;
+      skip();
+    }
+    expect(Type.CLOSE_CURVE);
+    return paramNames;
+  }
+
+  private For forExpr(Token token) {
+    manager.enterScope(true);
+    String name = readAlpha();
+    manager.defineVr(name);
+    expect(Type.COLON);
+    Expr from = parseExpr();
+    expect(Type.TO);
+    Expr to = parseExpr();
+    Expr by = null;
+    if (peek().type == Type.BY) {
+      skip();
+      by = parseExpr();
+    }
+    Statements body = body();
+    manager.leaveScope(true);
+    return new For(token, name, from, to, by, body);
   }
 
   private Expr ifExpr(Token token) {
@@ -61,24 +108,6 @@ public class Parser {
       manager.leaveScope(false);
     }
     return new IfExpr(token, condition, thenBody, elseBody);
-  }
-
-  private For forExpr(Token token) {
-    manager.enterScope(true);
-    String name = readAlpha();
-    manager.defineVr(name);
-    expect(Type.COLON);
-    Expr from = parseExpr();
-    expect(Type.TO);
-    Expr to = parseExpr();
-    Expr by = null;
-    if (peek().type == Type.BY) {
-      skip();
-      by = parseExpr();
-    }
-    Statements body = body();
-    manager.leaveScope(true);
-    return new For(token, name, from, to, by, body);
   }
 
   private Statements body() {
@@ -219,7 +248,7 @@ public class Parser {
   }
 
   private boolean notEOF() {
-    return index < tokens.size();
+    return index < size;
   }
 
   private boolean isEOF() {
