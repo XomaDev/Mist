@@ -1,13 +1,17 @@
 package me.ekita.mist.runtime.memory;
 
+import java.util.List;
+
 public class Memory {
 
   private Frame recyclePool = null;
-
   private Frame currentFrame;
+
+  private final Frame globalFrame;
 
   public Memory() {
     currentFrame = new Frame(null);
+    globalFrame = currentFrame;
   }
 
   private void recycleFrame(Frame frame) {
@@ -30,11 +34,12 @@ public class Memory {
     recycleFrame(reusable);
   }
 
-  public void declareVar(String name, Object value) {
-    currentFrame.entries.add(new Entry(name, value));
+  public void declareVar(boolean global, String name, Object value) {
+    List<Entry> entries = global ? globalFrame.entries : currentFrame.entries;
+    entries.add(new Entry(name, value));
   }
 
-  public Object getVar(int index, String name) {
-    return currentFrame.getVar(index, name);
+  public Object getVar(boolean global, int index, String name) {
+    return global ? globalFrame.getVar(index, name) : currentFrame.getVar(index, name);
   }
 }

@@ -5,8 +5,8 @@ import me.ekita.mist.definitions.DefinitionGroup;
 import me.ekita.mist.definitions.predef.StandardDefinitionGroup;
 import me.ekita.mist.definitions.predef.UserDefinitionGroup;
 import me.ekita.mist.expr.*;
+import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.RNumber;
-import me.ekita.mist.syntax.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,8 @@ import java.util.List;
 public class Evaluator implements Expr.Visitor<Object> {
 
   private final List<DefinitionGroup> definitionGroups = new ArrayList<>();
+
+  private final Memory memory = new Memory();
 
   public Evaluator() {
     definitionGroups.add(new StandardDefinitionGroup());
@@ -48,6 +50,11 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
+  public Object name(Name name) {
+    return memory.getVar(false, name.index, name.value);
+  }
+
+  @Override
   public Object binary(Binary binary) {
     Expr left = binary.left;
     Expr right = binary.right;
@@ -63,9 +70,13 @@ public class Evaluator implements Expr.Visitor<Object> {
       case POWER:
         return numericExpr(left).pow(numericExpr(right));
       case ASSIGNMENT:
-        Var var = (Var) left;
         Object result = right.accept(this);
-        setVar(var.global, var.name, result);
+        if (left instanceof GetVar) {
+          GetVar getVar = (GetVar) left;
+          memory.declareVar(getVar.global, getVar.name, result);
+          return result;
+        }
+        memory.declareVar(false, (String) left.accept(this), result);
         return result;
       default:
         throw new RuntimeException("Unknown operator type: " + binary.type);
@@ -73,13 +84,15 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
-  public Object varExpr(Var v) {
-    // here'll we'll simply return the value
-    return null;
+  public Object getVr(GetVar v) {
+    return memory.getVar(v.global, v.index, v.name);
   }
 
-  public void setVar(boolean global, String name, Object value) {
-    // TODO!
+  @Override
+  public Object setVr(SetVar v) {
+    Object result = v.expr.accept(this);
+    memory.declareVar(v.global, v.name, result);
+    return result;
   }
 
   @Override

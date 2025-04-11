@@ -15,4 +15,9 @@ public class Statements extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.statements(this);
   }
+
+  @Override
+  public String toString() {
+    return expressions.toString();
+  }
 }

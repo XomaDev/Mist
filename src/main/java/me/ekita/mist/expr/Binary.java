@@ -20,4 +20,13 @@ public class Binary extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.binary(this);
   }
+
+  @Override
+  public String toString() {
+    return "Binary{" +
+        "type=" + type +
+        ", left=" + left +
+        ", right=" + right +
+        '}';
+  }
 }

@@ -1,2 +1,2 @@
-loc.name = "Kumaraswamy!"
-println(loc.name)
+glob name = "Kumaraswamy!"
+println(name)

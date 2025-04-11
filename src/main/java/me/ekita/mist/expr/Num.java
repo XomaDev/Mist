@@ -17,4 +17,11 @@ public class Num extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.number(this);
   }
+
+  @Override
+  public String toString() {
+    return "Num{" +
+        "value='" + value + '\'' +
+        '}';
+  }
 }

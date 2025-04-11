@@ -19,4 +19,12 @@ public class FunctionCall extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.functionCall(this);
   }
+
+  @Override
+  public String toString() {
+    return "FunctionCall{" +
+        "name='" + name + '\'' +
+        ", args=" + arguments +
+        '}';
+  }
 }

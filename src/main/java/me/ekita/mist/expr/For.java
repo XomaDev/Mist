@@ -25,4 +25,15 @@ public class For extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.forLoop(this);
   }
+
+  @Override
+  public String toString() {
+    return "For{" +
+        "name='" + name + '\'' +
+        ", from=" + from +
+        ", to=" + to +
+        ", by=" + by +
+        ", body=" + body +
+        '}';
+  }
 }

@@ -16,4 +16,11 @@ public class Bool extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.bool(this);
   }
+
+  @Override
+  public String toString() {
+    return "Bool{" +
+        "value=" + value +
+        '}';
+  }
 }

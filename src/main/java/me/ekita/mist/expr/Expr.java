@@ -16,10 +16,12 @@ public abstract class Expr {
     R number(Num num);
     R bool(Bool bool);
     R text(Text text);
+    R name(Name name);
 
     R binary(Binary binary);
 
-    R varExpr(Var v);
+    R getVr(GetVar v);
+    R setVr(SetVar v);
 
     R statements(Statements statements);
 

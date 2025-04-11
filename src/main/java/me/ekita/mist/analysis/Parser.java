@@ -10,6 +10,8 @@ import java.util.List;
 
 public class Parser {
 
+  private final ScopeManager manager = new ScopeManager();
+
   private final List<Token> tokens;
   private int index = 0;
   private int size = 0;
@@ -22,6 +24,9 @@ public class Parser {
     List<Expr> expressions = new ArrayList<>();
     while (notEOF()) {
       expressions.add(parseStatement());
+    }
+    for (Expr expression : expressions) {
+      System.out.println(expression);
     }
     return new Statements(expressions);
   }
@@ -38,7 +43,9 @@ public class Parser {
   }
 
   private For forExpr(Token token) {
+    manager.enterScope(true);
     String name = readAlpha();
+    manager.defineVr(name);
     expect(Type.COLON);
     Expr from = parseExpr();
     expect(Type.TO);
@@ -48,7 +55,9 @@ public class Parser {
       skip();
       by = parseExpr();
     }
-    return new For(token, name, from, to, by, body());
+    Statements body = body();
+    manager.leaveScope(true);
+    return new For(token, name, from, to, by, body);
   }
 
   private Statements body() {
@@ -80,23 +89,37 @@ public class Parser {
   public Expr parseTerm() {
     Token token = eat();
     if (token.hasFlag(Flag.CONTEXT)) {
-      // loc or glob keyword
-      expect(Type.DOT);
-      String name = readAlpha();
-      return new Var(token, token.type == Type.GLOBAL, name);
+      return varAccess(token);
     } else if (token.type == Type.OPEN_CURVE) {
       Expr expr = parseStatement();
       expect(Type.CLOSE_CURVE);
       return expr;
     } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
-      if (expr instanceof Name && notEOF() && isNext(Type.OPEN_CURVE)) {
+      if (expr instanceof Name && ((Name) expr).index == -2) {
         // a function call! wohoo!
         return new FunctionCall(token, (String) token.data, arguments());
       }
       return expr;
     }
     return token.error("Unexpected token");
+  }
+
+  private Expr varAccess(Token token) {
+    // token => `var` or `glob`
+    if (isNext(Type.DOT)) {
+      // it's a GetVr
+      skip();
+      String name = readAlpha();
+      int vrIndex = manager.resolveVr(name);
+      if (vrIndex == -1) throw new RuntimeException("Cannot find symbol '" + name + "'");
+      return new GetVar(token, token.type == Type.GLOBAL, name, vrIndex);
+    }
+    String name = readAlpha();
+    expect(Type.ASSIGNMENT);
+    Expr expr = parseExpr();
+    manager.defineVr(name);
+    return new SetVar(token, token.type == Type.GLOBAL, name, expr);
   }
 
   public Expr parseValue(Token token) {
@@ -109,7 +132,18 @@ public class Parser {
       case M_TEXT:
         return new Text(token, (String) token.data);
       case ALPHA:
-        return new Name(token);
+        String name = (String) token.data;
+        // check for variable referencing
+        int varIndex = manager.resolveVr(name);
+        if (varIndex != -1) return new Name(token, varIndex);
+        // maybe it's part of a function call
+        UniqueFunction uniqueFn = manager.resolveFn(name);
+        if (uniqueFn != null) return new Name(token, -2);
+        // or it's invalid
+
+        // TODO: We gotta fix'em
+        //throw new RuntimeException("Cannot find symbol '" + name + "'");
+        return new Name(token, -2);
       default:
         return token.error("Unknown value type");
     }

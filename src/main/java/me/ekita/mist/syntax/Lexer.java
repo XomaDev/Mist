@@ -77,6 +77,9 @@ public class Lexer {
       case ':':
         tokens.add(createOp(":"));
         break;
+      case '.':
+        tokens.add(createOp("."));
+        break;
       case '"':
         parseText();
         break;

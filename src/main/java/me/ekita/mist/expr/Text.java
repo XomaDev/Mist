@@ -16,4 +16,9 @@ public class Text extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.text(this);
   }
+
+  @Override
+  public String toString() {
+    return "Text(" + content + ")";
+  }
 }

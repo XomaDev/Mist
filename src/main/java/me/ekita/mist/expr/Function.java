@@ -27,4 +27,14 @@ public class Function extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.function(this);
   }
+
+  @Override
+  public String toString() {
+    return "Function{" +
+        "name='" + name + '\'' +
+        ", returning=" + returning +
+        ", paramNames=" + parameterNames +
+        ", body=" + body +
+        '}';
+  }
 }
