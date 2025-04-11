@@ -22,4 +22,13 @@ public class ModuleCall extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.moduleCall(this);
   }
+
+  @Override
+  public String toString() {
+    return "ModuleCall{" +
+        "moduleName='" + moduleName + '\'' +
+        ", funcName='" + funcName + '\'' +
+        ", arguments=" + arguments +
+        '}';
+  }
 }

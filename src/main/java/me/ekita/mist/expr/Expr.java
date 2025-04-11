@@ -31,6 +31,7 @@ public abstract class Expr {
 
     R functionCall(FunctionCall call);
     R moduleCall(ModuleCall call);
+    R objectCall(ObjectCall call);
 
     R function(Function func);
   }

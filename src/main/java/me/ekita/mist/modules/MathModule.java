@@ -11,28 +11,28 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MathModule extends Module {
 
   public MathModule() {
-    define("bitwiseAnd", 2, new ModFunction() {
+    defineFunc("bitwiseAnd", 2, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         Expr l = args.get(0), r = args.get(1);
         return runtime.numericExpr(l.token, l).and(runtime.numericExpr(r.token, r));
       }
     });
-    define("bitwiseOr", 2, new ModFunction() {
+    defineFunc("bitwiseOr", 2, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         Expr l = args.get(0), r = args.get(1);
         return runtime.numericExpr(l.token, l).or(runtime.numericExpr(r.token, r));
       }
     });
-    define("bitwiseXor", 2, new ModFunction() {
+    defineFunc("bitwiseXor", 2, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         Expr l = args.get(0), r = args.get(1);
         return runtime.numericExpr(l.token, l).xor(runtime.numericExpr(r.token, r));
       }
     });
-    define("random", 2, new ModFunction() {
+    defineFunc("random", 2, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         Expr l = args.get(0), r = args.get(1);
@@ -44,14 +44,14 @@ public class MathModule extends Module {
         return new RNumber(ThreadLocalRandom.current().nextDouble(origin, bound));
       }
     });
-    define("randomFraction", 0, new ModFunction() {
+    defineFunc("randomFraction", 0, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         return new RNumber(Math.random());
       }
     });
     // behaviour not supported
-    define("randomSetSeed", 1, new ModFunction() {
+    defineFunc("randomSetSeed", 1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         Expr f = args.get(0);
@@ -59,7 +59,7 @@ public class MathModule extends Module {
         return null;
       }
     });
-    define("min", -1, new ModFunction() {
+    defineFunc("min", -1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         int argsSize = args.size();
@@ -75,7 +75,7 @@ public class MathModule extends Module {
         return min;
       }
     });
-    define("max", -1, new ModFunction() {
+    defineFunc("max", -1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         int argsSize = args.size();
@@ -94,10 +94,10 @@ public class MathModule extends Module {
   }
 
   @Override
-  public ModFunction get(String name, int paramCount) {
-    ModFunction func = super.get(name, paramCount);
+  public ModFunction getFunc(String name, int paramCount) {
+    ModFunction func = super.getFunc(name, paramCount);
     // overriding behaviour to support functions with unlimited arguments like min()
-    if (func == null) return super.get(name, -1);
+    if (func == null) return super.getFunc(name, -1);
     return null;
   }
 }

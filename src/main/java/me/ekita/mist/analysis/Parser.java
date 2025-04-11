@@ -132,13 +132,24 @@ public class Parser {
     return left;
   }
 
-  public Expr parseElement() {
+  private Expr parseElement() {
     Expr left = parseTerm();
-    // for now, we don't have a lot to do here
+    while (notEOF()) {
+      Token nextOp = peek();
+      if (nextOp.type != Type.DOT) break;
+      left = objectCall(left);
+    }
     return left;
   }
 
-  public Expr parseTerm() {
+  private Expr objectCall(Expr object) {
+    expect(Type.DOT);
+    String methodName = readAlpha();
+    List<Expr> args = arguments();
+    return new ObjectCall(object.token, object, methodName, args);
+  }
+
+  private Expr parseTerm() {
     Token token = eat();
     if (token.hasFlag(Flag.CONTEXT)) {
       return varAccess(token);
@@ -148,19 +159,14 @@ public class Parser {
       return expr;
     } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
-      if (expr instanceof Name && ((Name) expr).index == -2) {
-        if (isNext(Type.DOT)) {
-          // It's a module call!
-          skip();
-          String funcName = readAlpha();
-          String moduleName = (String) token.data;
-          return new ModuleCall(token, moduleName, funcName, arguments());
-        } else if (isNext(Type.OPEN_CURVE)) {
-          // a function call! wohoo!
-          return new FunctionCall(token, (String) token.data, arguments());
-        }
-        // ehh, it's not even a function call
-        ((Name) expr).invalidate(); // thi'll error out
+      if (!(expr instanceof Name)) return expr;
+      // check if it's some kind of function invocation!
+      int nameIndex = ((Name) expr).index;
+      if (nameIndex < 0) {
+        // either a function call or a module cal
+        if (isNext(Type.DOT)) return moduleCall(token);
+        else if (isNext(Type.OPEN_CURVE)) return new FunctionCall(token, (String) token.data, arguments());
+        else ((Name) expr).invalidate();
       }
       return expr;
     }
@@ -168,6 +174,13 @@ public class Parser {
       return new Unary(token, token.type, parseExpr());
     }
     return token.error("Unexpected token");
+  }
+
+  private ModuleCall moduleCall(Token token) {
+    expect(Type.DOT);
+    String funcName = readAlpha();
+    String moduleName = (String) token.data;
+    return new ModuleCall(token, moduleName, funcName, arguments());
   }
 
   private Expr varAccess(Token token) {

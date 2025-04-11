@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SysModule extends Module {
   public SysModule() {
-    define("println", 1, new ModFunction() {
+    defineFunc("println", 1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         System.out.println(args.get(0).accept(runtime));

@@ -37,6 +37,12 @@ public class Evaluator implements Expr.Visitor<Object> {
     return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
+  public RNumber numericExpr(Expr expr) {
+    Object result = expr.accept(this);
+    if (result instanceof RNumber) return (RNumber) result;
+    return expr.token.error("Expected RNumber but got " + result + " of class " + result.getClass());
+  }
+
   public boolean boolExpr(Token token, Expr expr) {
     Object result = expr.accept(this);
     if (result instanceof Boolean) return (boolean) result;
@@ -221,10 +227,33 @@ public class Evaluator implements Expr.Visitor<Object> {
     Module module = modules.get(call.moduleName);
     if (module == null)
       return call.token.error("Cannot find module " + call.moduleName);
-    ModFunction func = module.get(call.funcName, call.arguments.size());
+    ModFunction func = module.getFunc(call.funcName, call.arguments.size());
     if (func == null)
       return call.token.error("Cannot find function " + call.funcName + " in module " + call.moduleName);
     return func.call(call.token, this, call.arguments);
+  }
+
+  @Override
+  public Object objectCall(ObjectCall call) {
+    Object object = call.object.accept(this);
+    String moduleName = getModuleName(call.token, object);
+    String methodName = call.methodName;
+
+    Module module = modules.get(moduleName);
+    if (module == null)
+      return call.token.error("Cannot find module " + moduleName);
+    ModMethod method = module.getMethod(methodName, call.arguments.size());
+    if (method == null)
+      return call.token.error("Cannot find object method " + methodName + " in module " + moduleName);
+    return method.call(call.token, this, object, call.arguments);
+  }
+
+  private String getModuleName(Token token, Object value) {
+    if (value instanceof String) return "Text";
+    else if (value instanceof RNumber) return "Number";
+    else if (value instanceof List<?>) return "List";
+    else if (value instanceof Boolean) return "Logic";
+    return token.error("Module unknown for value: " + value);
   }
 
   @Override

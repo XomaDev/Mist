@@ -2,21 +2,24 @@ package me.ekita.mist.modules;
 
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.runtime.Evaluator;
+import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ListModule extends Module {
 
   public ListModule() {
-    define("emptyList", 0, new ModFunction() {
+    defineFunc("emptyList", 0, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         return new ArrayList<>();
       }
     });
-    define("makeList", -1, new ModFunction() {
+    defineFunc("makeList", -1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         List<Object> evaluated = new ArrayList<>();
@@ -24,13 +27,116 @@ public class ListModule extends Module {
         return evaluated;
       }
     });
+    defineFunc("isList", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return args.get(0).accept(runtime) instanceof List<?>;
+      }
+    });
+
+    defineMethod("add", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        return asList(token, object).add(args.get(0).accept(runtime));
+      }
+    });
+    defineMethod("contains", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        return asList(token, object).contains(args.get(0).accept(runtime));
+      }
+    });
+    defineMethod("len", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        return new RNumber(asList(token, object).size());
+      }
+    });
+    defineMethod("isEmpty", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        return asList(token, object).isEmpty();
+      }
+    });
+    defineMethod("random", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> list = asList(token, object);
+        return list.get(ThreadLocalRandom.current().nextInt(list.size()));
+      }
+    });
+    defineMethod("indexOf", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        return asList(token, object).indexOf(args.get(0).accept(runtime)) + 1;
+      }
+    });
+    defineMethod("get", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        // Indexing in AI2 starts with 1
+        int index = (int) runtime.numericExpr(args.get(0)).longValue() - 1;
+        return asList(token, object).get(index);
+      }
+    });
+    defineMethod("insert", 2, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        int index = (int) runtime.numericExpr(args.get(0)).longValue() - 1;
+        Object element = args.get(1).accept(runtime);
+        asList(token, object).add(index, element);
+        return element;
+      }
+    });
+    defineMethod("set", 2, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        int index = (int) runtime.numericExpr(args.get(0)).longValue() - 1;
+        Object element = args.get(1).accept(runtime);
+        return asList(token, object).set(index, element);
+      }
+    });
+    defineMethod("remove", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        int index = (int) runtime.numericExpr(args.get(0)).longValue() - 1;
+        return asList(token, object).remove(index);
+      }
+    });
+    defineMethod("append", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> left = asList(token, object);
+        List<Object> right = asList(token, args.get(0).accept(runtime));
+        return left.addAll(right);
+      }
+    });
+    defineMethod("copy", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        return new ArrayList<>(asList(token, object));
+      }
+    });
+    defineMethod("reverse", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<?> copy = new ArrayList<>(asList(token, object));
+        Collections.reverse(copy);
+        return copy;
+      }
+    });
+  }
+
+  private static List<Object> asList(Token token, Object value) {
+    if (value instanceof List<?>) return (List<Object>) value;
+    return token.error("Expected a list but got " + value);
   }
 
   @Override
-  public ModFunction get(String name, int paramCount) {
-    ModFunction func = super.get(name, paramCount);
+  public ModFunction getFunc(String name, int paramCount) {
+    ModFunction func = super.getFunc(name, paramCount);
     // overriding behaviour to support functions with unlimited arguments like min()
-    if (func == null) return super.get(name, -1);
+    if (func == null) return super.getFunc(name, -1);
     return null;
   }
 }
