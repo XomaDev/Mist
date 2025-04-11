@@ -13,6 +13,10 @@ public class Name extends Expr {
     this.index = index;
   }
 
+  public void invalidate() {
+    throw new RuntimeException("Cannot find symbol '" + value + "'");
+  }
+
   @Override
   public <R> R accept(Visitor<R> v) {
     return v.name(this);

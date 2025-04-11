@@ -19,12 +19,16 @@ public class Memory {
     recyclePool = frame;
   }
 
-  private Frame enterScope() {
+  private Frame newScope() {
     if (recyclePool == null) return new Frame(currentFrame);
     Frame tail = recyclePool;
     recyclePool = recyclePool.superFrame;
     tail.reset(currentFrame);
     return tail;
+  }
+
+  public void enterScope() {
+    currentFrame = newScope();
   }
 
   public void leaveScope() {

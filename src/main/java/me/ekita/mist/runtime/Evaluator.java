@@ -103,20 +103,27 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object forLoop(For f) {
+    String name = f.name;
     RNumber current = ((RNumber) f.from.accept(this));
     RNumber to = ((RNumber) f.to.accept(this));
     RNumber by = ((RNumber) f.by.accept(this));
 
     if (current.compareTo(to) <= 0) {
       // a forward loop
-      while (current.compareTo(to) < 0) {
+      while (current.compareTo(to) <= 0) {
+        memory.enterScope();
+        memory.declareVar(false, name, current);
         f.body.accept(this);
+        memory.leaveScope();
         current = current.add(by);
       }
     } else {
       // a backward loop
-      while (current.compareTo(to) > 0) {
+      while (current.compareTo(to) >= 0) {
+        memory.enterScope();
+        memory.declareVar(false, name, current);
         f.body.accept(this);
+        memory.leaveScope();
         current = current.sub(by);
       }
     }

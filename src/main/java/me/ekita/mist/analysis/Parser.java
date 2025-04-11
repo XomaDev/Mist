@@ -97,6 +97,10 @@ public class Parser {
     } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
       if (expr instanceof Name && ((Name) expr).index == -2) {
+        if (!isNext(Type.OPEN_CURVE)) {
+          // ehh, it's not even a function call
+          ((Name) expr).invalidate(); // thi'll error out
+        }
         // a function call! wohoo!
         return new FunctionCall(token, (String) token.data, arguments());
       }
@@ -137,12 +141,6 @@ public class Parser {
         int varIndex = manager.resolveVr(name);
         if (varIndex != -1) return new Name(token, varIndex);
         // maybe it's part of a function call
-        UniqueFunction uniqueFn = manager.resolveFn(name);
-        if (uniqueFn != null) return new Name(token, -2);
-        // or it's invalid
-
-        // TODO: We gotta fix'em
-        //throw new RuntimeException("Cannot find symbol '" + name + "'");
         return new Name(token, -2);
       default:
         return token.error("Unknown value type");
