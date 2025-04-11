@@ -1,5 +1,8 @@
 package me.ekita.mist.runtime.structs;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 public class RNumber {
 
   private final Number number;
@@ -36,6 +39,24 @@ public class RNumber {
     if (number instanceof Long && other.number instanceof Long)
       return new RNumber(Math.pow(number.longValue(), other.number.longValue()));
     return new RNumber(Math.pow(number.doubleValue(), other.number.doubleValue()));
+  }
+
+  public RNumber and(RNumber other) {
+    BigInteger left = number instanceof BigInteger ? (BigInteger) number : ((BigDecimal) number).toBigInteger();
+    BigInteger right = other.number instanceof BigInteger ? (BigInteger) other.number : ((BigDecimal) other.number).toBigInteger();
+    return new RNumber(left.and(right));
+  }
+
+  public RNumber or(RNumber other) {
+    BigInteger left = number instanceof BigInteger ? (BigInteger) number : ((BigDecimal) number).toBigInteger();
+    BigInteger right = other.number instanceof BigInteger ? (BigInteger) other.number : ((BigDecimal) other.number).toBigInteger();
+    return new RNumber(left.or(right));
+  }
+
+  public RNumber xor(RNumber other) {
+    BigInteger left = number instanceof BigInteger ? (BigInteger) number : ((BigDecimal) number).toBigInteger();
+    BigInteger right = other.number instanceof BigInteger ? (BigInteger) other.number : ((BigDecimal) other.number).toBigInteger();
+    return new RNumber(left.xor(right));
   }
 
   public int compareTo(RNumber other) {

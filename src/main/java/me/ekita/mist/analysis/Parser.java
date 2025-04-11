@@ -149,12 +149,18 @@ public class Parser {
     } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
       if (expr instanceof Name && ((Name) expr).index == -2) {
-        if (!isNext(Type.OPEN_CURVE)) {
-          // ehh, it's not even a function call
-          ((Name) expr).invalidate(); // thi'll error out
+        if (isNext(Type.DOT)) {
+          // It's a module call!
+          skip();
+          String funcName = readAlpha();
+          String moduleName = (String) token.data;
+          return new ModuleCall(token, moduleName, funcName, arguments());
+        } else if (isNext(Type.OPEN_CURVE)) {
+          // a function call! wohoo!
+          return new FunctionCall(token, (String) token.data, arguments());
         }
-        // a function call! wohoo!
-        return new FunctionCall(token, (String) token.data, arguments());
+        // ehh, it's not even a function call
+        ((Name) expr).invalidate(); // thi'll error out
       }
       return expr;
     }

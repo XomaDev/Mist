@@ -1,31 +1,29 @@
 package me.ekita.mist.runtime;
 
-import me.ekita.mist.definitions.Definition;
-import me.ekita.mist.definitions.DefinitionGroup;
-import me.ekita.mist.definitions.predef.StandardDefinitionGroup;
-import me.ekita.mist.definitions.predef.UserDefinitionGroup;
 import me.ekita.mist.expr.*;
+import me.ekita.mist.modules.MathModule;
+import me.ekita.mist.modules.ModFunction;
+import me.ekita.mist.modules.Module;
+import me.ekita.mist.modules.SysModule;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Evaluator implements Expr.Visitor<Object> {
 
-  private final List<DefinitionGroup> definitionGroups = new ArrayList<>();
-
   private final Memory memory = new Memory();
+  private final Map<String, Function> functions = new HashMap<>();
+
+  private final Map<String, Module> modules = new HashMap<>();
 
   public Evaluator() {
-    definitionGroups.add(new StandardDefinitionGroup());
-    definitionGroups.add(new UserDefinitionGroup());
-  }
-
-  public void addDefinitionGroup(DefinitionGroup group) {
-    definitionGroups.add(group);
+    modules.put("sys", new SysModule());
+    modules.put("math", new MathModule());
   }
 
   @Override
@@ -35,13 +33,13 @@ public class Evaluator implements Expr.Visitor<Object> {
     return new RNumber(Long.parseLong(num.value));
   }
 
-  private RNumber numericExpr(Token token, Expr expr) {
+  public RNumber numericExpr(Token token, Expr expr) {
     Object result = expr.accept(this);
     if (result instanceof RNumber) return (RNumber) result;
     return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
-  private boolean boolExpr(Token token, Expr expr) {
+  public boolean boolExpr(Token token, Expr expr) {
     Object result = expr.accept(this);
     if (result instanceof Boolean) return (boolean) result;
     return token.error("Expected Bool but got " + result + " of class " + result.getClass());
@@ -185,23 +183,42 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object functionCall(FunctionCall call) {
     List<Expr> args = call.arguments;
-    int argSize = args.size();
-    // search for the function down the hierarchy
-    for (DefinitionGroup group : definitionGroups) {
-      Definition def = group.get(call.name, argSize);
-      if (def == null) continue;
-      Object[] evaluated = new Object[argSize];
-      for (int i = 0; i < argSize; i++) {
-        evaluated[i] = args.get(i).accept(this);
-      }
-      return def.call(evaluated);
+    int argsSize = args.size();
+
+    Function func = functions.get(argsSize + call.name);
+    List<String> paramNames = func.parameterNames;
+
+    Object[] evaluatedArgs = new Object[argsSize];
+    for (int i = 0; i < argsSize; i++) {
+      evaluatedArgs[i] = args.get(i).accept(this);
     }
-    throw new RuntimeException("Could not find method named " + call.name + " of " + argSize + " arguments");
+
+    memory.enterScope();
+    for (int i = 0; i < argsSize; i++) {
+      String paramName = paramNames.get(i);
+      Object value = evaluatedArgs[i];
+      memory.declareVar(false, paramName, value);
+    }
+    Object callResult = func.body.accept(this);
+    memory.leaveScope();
+
+    return callResult;
+  }
+
+  @Override
+  public Object moduleCall(ModuleCall call) {
+    Module module = modules.get(call.moduleName);
+    if (module == null)
+      return call.token.error("Cannot find module " + call.moduleName);
+    ModFunction func = module.get(call.funcName, call.arguments.size());
+    if (func == null)
+      return call.token.error("Cannot find function " + call.funcName + " in module " + call.moduleName);
+    return func.call(this, call.arguments);
   }
 
   @Override
   public Object function(Function func) {
-    UserDefinitionGroup.define(func.name, func.returning, func.parameterNames, func.body, memory, this);
+    functions.put(func.parameterNames.size() + func.name, func);
     return null;
   }
 }

@@ -4,4 +4,4 @@
   )
 )
 
-println(fib(35))
+sys.println(fib(35))

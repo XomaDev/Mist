@@ -29,6 +29,7 @@ public abstract class Expr {
     R forLoop(For f);
 
     R functionCall(FunctionCall call);
+    R moduleCall(ModuleCall call);
     R function(Function func);
   }
 
