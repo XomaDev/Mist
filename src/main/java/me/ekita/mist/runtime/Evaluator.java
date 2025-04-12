@@ -31,6 +31,15 @@ public class Evaluator implements Expr.Visitor<Object> {
     modules.put("Color", new ColorModule());
   }
 
+  private Object unbox(Object value) {
+    if (value instanceof Interrupt) return unbox(((Interrupt) value).value);
+    return value;
+  }
+
+  private Object unboxEval(Expr expr) {
+    return unbox(expr.accept(this));
+  }
+
   @Override
   public RNumber number(Num num) {
     // Using ternary operator will mess up coercion
@@ -39,19 +48,19 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   public RNumber numericExpr(Token token, Expr expr) {
-    Object result = expr.accept(this);
+    Object result = unboxEval(expr);
     if (result instanceof RNumber) return (RNumber) result;
     return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
   public RNumber numericExpr(Expr expr) {
-    Object result = expr.accept(this);
+    Object result = unboxEval(expr);
     if (result instanceof RNumber) return (RNumber) result;
     return expr.token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
   public boolean boolExpr(Token token, Expr expr) {
-    Object result = expr.accept(this);
+    Object result = unboxEval(expr);
     if (result instanceof Boolean) return (boolean) result;
     return token.error("Expected Bool but got " + result + " of class " + result.getClass());
   }
@@ -74,7 +83,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object makeList(MakeList makeList) {
     RList evaluated = new RList();
-    for (Expr item : makeList.items) evaluated.add(item.accept(this));
+    for (Expr item : makeList.items) evaluated.add(unboxEval(item));
     return evaluated;
   }
 
@@ -83,12 +92,10 @@ public class Evaluator implements Expr.Visitor<Object> {
     RDictionary evaluated = new RDictionary();
     for (Expr entry : makeDict.entries) {
       if (!(entry instanceof Binary && ((Binary) entry).type == Type.COLON)) {
-        Object value = entry.accept(this);
+        Object value = unboxEval(entry);
         return makeDict.token.error("Not a valid dictionary entry, got " + value + " of class " + value.getClass());
       }
-      Object key = ((Binary) entry).left.accept(this);
-      Object value = ((Binary) entry).right.accept(this);
-      evaluated.put(key, value);
+      evaluated.put(unboxEval(((Binary) entry).left), unboxEval(((Binary) entry).right));
     }
     return evaluated;
   }
@@ -96,8 +103,8 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object pair(Pair pair) {
     List<Object> evaluated = new ArrayList<>();
-    evaluated.add(pair.key.accept(this));
-    evaluated.add(pair.value.accept(this));
+    evaluated.add(unboxEval(pair.key));
+    evaluated.add(unboxEval(pair.value));
     return evaluated;
   }
 
@@ -130,8 +137,8 @@ public class Evaluator implements Expr.Visitor<Object> {
         return numericExpr(t, bin.left).pow(numericExpr(t, bin.right));
       case EQUALS:
       case NOT_EQUALS:
-        Object left = bin.left.accept(this);
-        Object right = bin.right.accept(this);
+        Object left = unboxEval(bin.left);
+        Object right = unboxEval(bin.right);
         if (bin.type == Type.EQUALS) return valueEquals(left, right);
         return !valueEquals(left, right);
       // TODO:
@@ -150,8 +157,8 @@ public class Evaluator implements Expr.Visitor<Object> {
         return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) >= 0;
       case COLON:
         RList evaluated = new RList();
-        evaluated.add(bin.left.accept(this));
-        evaluated.add(bin.right.accept(this));
+        evaluated.add(unboxEval(bin.left));
+        evaluated.add(unboxEval(bin.right));
         return evaluated;
       default:
         return t.error("Unknown binary operator type: " + bin.type);
@@ -166,7 +173,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object varSmt(VarSmt smt) {
-    Object value = smt.expr.accept(this);
+    Object value = unboxEval(smt.expr);
     memory.declareVar(smt.global, smt.name, value);
     return value;
   }
@@ -174,7 +181,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object varSet(VarSet set) {
     // We'll get back to this later
-    return memory.setVar(set.global, set.name, set.index, set.value.accept(this));
+    return memory.setVar(set.global, set.name, set.index, unboxEval(set.value));
   }
 
   @Override
@@ -303,7 +310,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
     Object[] evaluatedArgs = new Object[argsSize];
     for (int i = 0; i < argsSize; i++) {
-      evaluatedArgs[i] = args.get(i).accept(this);
+      evaluatedArgs[i] = unboxEval(args.get(i));
     }
 
     memory.enterScope();
@@ -312,9 +319,8 @@ public class Evaluator implements Expr.Visitor<Object> {
       Object value = evaluatedArgs[i];
       memory.declareVar(false, paramName, value);
     }
-    Object callResult = func.body.accept(this);
+    Object callResult = unboxEval(func.body);
     memory.leaveScope();
-
     return callResult;
   }
 
@@ -331,7 +337,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object objectCall(ObjectCall call) {
-    Object object = call.object.accept(this);
+    Object object = unboxEval(call.object);
     String moduleName = getModuleName(call.token, object);
     String methodName = call.methodName;
 
