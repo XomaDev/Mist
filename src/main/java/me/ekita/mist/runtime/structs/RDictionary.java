@@ -3,8 +3,19 @@ package me.ekita.mist.runtime.structs;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class RDictionary extends HashMap<Object, Object> {
+
+  public RDictionary() {
+    super();
+  }
+
+
+  public RDictionary(Map<?, ?> m) {
+    super(m);
+  }
+
   @Override
   public String toString() {
     JSONObject json = new JSONObject();

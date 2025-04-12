@@ -27,6 +27,7 @@ public class Evaluator implements Expr.Visitor<Object> {
     modules.put("Text", new TextModule());
     modules.put("List", new ListModule());
     modules.put("Dict", new DictModule());
+    modules.put("Color", new ColorModule());
   }
 
   @Override
@@ -293,7 +294,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   private String getModuleName(Token token, Object value) {
     if (value instanceof String) return "Text";
     else if (value instanceof RNumber) return "Number";
-    else if (value instanceof Boolean) return "Logic";
+    //else if (value instanceof Boolean) return "Logic";
     else if (value instanceof RList) return "List";
     else if (value instanceof RDictionary) return "Dict";
     return token.error("Module unknown for value: " + value);
