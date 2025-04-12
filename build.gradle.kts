@@ -1,24 +1,26 @@
 plugins {
-    id("java")
-    kotlin("jvm")
+  id("java")
+  kotlin("jvm")
 }
 
 group = "me.ekita.mist"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(kotlin("stdlib-jdk8"))
+  testImplementation(platform("org.junit:junit-bom:5.10.0"))
+  testImplementation("org.junit.jupiter:junit-jupiter")
+
+  implementation(kotlin("stdlib-jdk8"))
+  implementation("org.json:json:20250107")
 }
 
 tasks.test {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(8)
+  jvmToolchain(8)
 }

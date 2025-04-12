@@ -108,7 +108,7 @@ public class TextModule extends Module {
         String text = asString(token, object);
 
         int index = text.indexOf(delimiter);
-        if (index == -1) return makeArray(text);
+        if (index == -1) return makeFromArray(text);
         String first = text.substring(0, index);
         String last = text.substring(index + delimiter.length());
         return arrayToList(new String[]{first, last});
@@ -150,7 +150,7 @@ public class TextModule extends Module {
             pieceLength = asString.length();
           }
         }
-        if (leastIndex == -1) return makeArray(text);
+        if (leastIndex == -1) return makeFromArray(text);
         String first = text.substring(0, leastIndex);
         String last = text.substring(leastIndex + pieceLength);
         return arrayToList(new String[]{first, last});

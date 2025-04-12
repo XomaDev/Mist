@@ -17,6 +17,9 @@ public abstract class Expr {
     R bool(Bool bool);
     R text(Text text);
     R name(Name name);
+    R makeList(MakeList makeList);
+    R makeDict(MakeDict makeDict);
+    R pair(Pair pair);
 
     R unary(Unary unary);
     R binary(Binary binary);

@@ -1,0 +1,4 @@
+var capitals = {"India":"New Delhi", "Japan":"Tokyo", "South Korea":"Seoul"}
+Sys.println(capitals)
+Sys.println("India":"Korea")
+Sys.println(capitals.get("India", "Not Found"))

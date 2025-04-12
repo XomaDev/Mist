@@ -15,20 +15,6 @@ import static me.ekita.mist.modules.ModuleHelper.asList;
 public class ListModule extends Module {
 
   public ListModule() {
-    defineFunc("emptyList", 0, new ModFunction() {
-      @Override
-      public Object call(Token token, Evaluator runtime, List<Expr> args) {
-        return new ArrayList<>();
-      }
-    });
-    defineFunc("makeList", -1, new ModFunction() {
-      @Override
-      public Object call(Token token, Evaluator runtime, List<Expr> args) {
-        List<Object> evaluated = new ArrayList<>();
-        for (Expr item : args) evaluated.add(item.accept(runtime));
-        return evaluated;
-      }
-    });
     defineFunc("isList", 1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {

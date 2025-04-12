@@ -3,10 +3,13 @@ package me.ekita.mist.runtime;
 import me.ekita.mist.expr.*;
 import me.ekita.mist.modules.*;
 import me.ekita.mist.runtime.memory.Memory;
+import me.ekita.mist.runtime.structs.RDictionary;
+import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +26,7 @@ public class Evaluator implements Expr.Visitor<Object> {
     modules.put("Math", new MathModule());
     modules.put("Text", new TextModule());
     modules.put("List", new ListModule());
+    modules.put("Dict", new DictModule());
   }
 
   @Override
@@ -63,6 +67,36 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object name(Name name) {
     return memory.getVar(false, name.index, name.value);
+  }
+
+  @Override
+  public Object makeList(MakeList makeList) {
+    RList evaluated = new RList();
+    for (Expr item : makeList.items) evaluated.add(item.accept(this));
+    return evaluated;
+  }
+
+  @Override
+  public Object makeDict(MakeDict makeDict) {
+    RDictionary evaluated = new RDictionary();
+    for (Expr entry : makeDict.entries) {
+      if (!(entry instanceof Binary && ((Binary) entry).type == Type.COLON)) {
+        Object value = entry.accept(this);
+        return makeDict.token.error("Not a valid dictionary entry, got " + value + " of class " + value.getClass());
+      }
+      Object key = ((Binary) entry).left.accept(this);
+      Object value = ((Binary) entry).right.accept(this);
+      evaluated.put(key, value);
+    }
+    return evaluated;
+  }
+
+  @Override
+  public Object pair(Pair pair) {
+    List<Object> evaluated = new ArrayList<>();
+    evaluated.add(pair.key.accept(this));
+    evaluated.add(pair.value.accept(this));
+    return evaluated;
   }
 
   @Override
@@ -121,6 +155,11 @@ public class Evaluator implements Expr.Visitor<Object> {
         return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) <= 0;
       case GREATER_THAN_EQUALS:
         return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) >= 0;
+      case COLON:
+        RList evaluated = new RList();
+        evaluated.add(bin.left.accept(this));
+        evaluated.add(bin.right.accept(this));
+        return evaluated;
       default:
         return t.error("Unknown binary operator type: " + bin.type);
     }
@@ -254,8 +293,9 @@ public class Evaluator implements Expr.Visitor<Object> {
   private String getModuleName(Token token, Object value) {
     if (value instanceof String) return "Text";
     else if (value instanceof RNumber) return "Number";
-    else if (value instanceof List<?>) return "List";
     else if (value instanceof Boolean) return "Logic";
+    else if (value instanceof RList) return "List";
+    else if (value instanceof RDictionary) return "Dict";
     return token.error("Module unknown for value: " + value);
   }
 

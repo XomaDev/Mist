@@ -1,4 +1,4 @@
-var countries = List.makeList("India", "Japan", "Germany")
+var countries = ["India", "Japan", "Germany"]
 Sys.println(countries.len())
 Sys.println(countries.isEmpty())
 countries.add("USA")

@@ -69,6 +69,7 @@ public enum Type {
       put("/", new StaticToken(Type.SLASH, Flag.BINARY, Flag.OPERATOR));
       put("*", new StaticToken(Type.TIMES, Flag.BINARY, Flag.OPERATOR));
       put("^", new StaticToken(Type.POWER, Flag.BINARY, Flag.OPERATOR));
+      put(":", new StaticToken(Type.COLON, Flag.BINARY, Flag.OPERATOR)); // dictionary pair
 
       put("+", new StaticToken(Type.PLUS, Flag.UNARY, Flag.OPERATOR));
       put("-", new StaticToken(Type.NEGATE, Flag.UNARY, Flag.OPERATOR));
@@ -76,7 +77,6 @@ public enum Type {
       put("!", new StaticToken(Type.EXCLAMATION, Flag.UNARY));
 
       put(".", new StaticToken(Type.DOT));
-      put(":", new StaticToken(Type.COLON));
       put(",", new StaticToken(Type.COMMA));
 
       put("(", new StaticToken(Type.OPEN_CURVE));

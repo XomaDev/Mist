@@ -29,6 +29,7 @@ public class Parser {
     for (Expr expression : expressions) {
       System.out.println(expression);
     }
+    System.out.println();
     return new Statements(expressions);
   }
 
@@ -157,6 +158,10 @@ public class Parser {
       Expr expr = parseStatement();
       expect(Type.CLOSE_CURVE);
       return expr;
+    } else if (token.type == Type.OPEN_SQUARE) {
+      return makeList(token);
+    } else if (token.type == Type.OPEN_CURLY) {
+      return makeDict(token);
     } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
       if (!(expr instanceof Name)) return expr;
@@ -169,11 +174,34 @@ public class Parser {
         else ((Name) expr).invalidate();
       }
       return expr;
-    }
-    if (notEOF() && token.hasFlag(Flag.UNARY)) {
+    } else if (token.hasFlag(Flag.UNARY)) {
       return new Unary(token, token.type, parseExpr());
     }
     return token.error("Unexpected token");
+  }
+
+  private MakeDict makeDict(Token token) {
+    if (isNext(Type.CLOSE_CURLY)) return new MakeDict(token, new ArrayList<Expr>());
+    List<Expr> entries = new ArrayList<>();
+    while (notEOF()) {
+      entries.add(parseExpr());
+      if (!isNext(Type.COMMA)) break;
+      skip();
+    }
+    expect(Type.CLOSE_CURLY);
+    return new MakeDict(token, entries);
+  }
+
+  private MakeList makeList(Token token) {
+    if (isNext(Type.CLOSE_SQUARE)) return new MakeList(token, new ArrayList<Expr>());
+    List<Expr> items = new ArrayList<>();
+    while (notEOF()) {
+      items.add(parseExpr());
+      if (!isNext(Type.COMMA)) break;
+      skip();
+    }
+    expect(Type.CLOSE_SQUARE);
+    return new MakeList(token, items);
   }
 
   private ModuleCall moduleCall(Token token) {

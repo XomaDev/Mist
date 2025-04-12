@@ -68,6 +68,18 @@ public class RNumber {
   }
 
   @Override
+  public boolean equals(Object object) {
+    if (object == null || getClass() != object.getClass()) return false;
+    RNumber rNumber = (RNumber) object;
+    return number.equals(rNumber.number);
+  }
+
+  @Override
+  public int hashCode() {
+    return number.hashCode();
+  }
+
+  @Override
   public String toString() {
     return number.toString();
   }
