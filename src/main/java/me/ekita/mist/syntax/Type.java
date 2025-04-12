@@ -37,7 +37,7 @@ public enum Type {
 
   FOR, WHILE,
   WHEN,
-  VOID, RET,
+  FUN,
 
   RETURN, BREAK, CONTINUE,
 
@@ -111,8 +111,7 @@ public enum Type {
       put("for", new StaticToken(FOR));
       put("while", new StaticToken(WHILE));
       put("when", new StaticToken(WHEN, Flag.WHEN));
-      put("void", new StaticToken(VOID, Flag.PROCEDURE_HEADER));
-      put("returning", new StaticToken(RET, Flag.PROCEDURE_HEADER));
+      put("fun", new StaticToken(FUN));
     }};
   }
 }

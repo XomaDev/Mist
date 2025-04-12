@@ -3,6 +3,7 @@ package me.ekita.mist.runtime;
 import me.ekita.mist.expr.*;
 import me.ekita.mist.modules.*;
 import me.ekita.mist.runtime.memory.Memory;
+import me.ekita.mist.runtime.structs.Interrupt;
 import me.ekita.mist.runtime.structs.RDictionary;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
@@ -164,7 +165,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
-  public Object varSmt(VarStatement smt) {
+  public Object varSmt(VarSmt smt) {
     Object value = smt.expr.accept(this);
     memory.declareVar(smt.global, smt.name, value);
     return value;
@@ -183,10 +184,20 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object statements(Statements statements) {
-    List<Expr> exprs = statements.expressions;
-    int until = exprs.size() - 1;
-    for (int i = 0; i < until; i++) exprs.get(i).accept(this);
-    return exprs.get(until).accept(this);
+    Object result = null;
+    for (Expr expr : statements.expressions) {
+      result = expr.accept(this);
+
+      if (result instanceof Interrupt) {
+        switch (((Interrupt) result).type) {
+          case RETURN:
+          case CONTINUE:
+          case BREAK:
+            return result;
+        }
+      }
+    }
+    return result;
   }
 
   @Override
@@ -211,12 +222,23 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object whileLoop(While l) {
     Expr condition = l.condition;
+    int numIterations = 0;
+    whileLoop:
     while (boolExpr(l.token, condition)) {
+      numIterations++;
       memory.enterScope();
-      l.body.accept(this);
+      Object result = l.body.accept(this);
       memory.leaveScope();
+
+      if (result instanceof Interrupt) {
+        switch (((Interrupt) result).type) {
+          case BREAK: break whileLoop;
+          //case CONTINUE: continue whileLoop;
+          case RETURN: return ((Interrupt) result).value;
+        }
+      }
     }
-    return null;
+    return numIterations;
   }
 
   @Override
@@ -228,24 +250,47 @@ public class Evaluator implements Expr.Visitor<Object> {
 
     if (current.compareTo(to) <= 0) {
       // a forward loop
+      whileLoop:
       while (current.compareTo(to) <= 0) {
         memory.enterScope();
         memory.declareVar(false, name, current);
-        f.body.accept(this);
+        Object result = f.body.accept(this);
         memory.leaveScope();
         current = current.add(by);
+
+        if (result instanceof Interrupt) {
+          switch (((Interrupt) result).type) {
+            case BREAK: break whileLoop;
+            //case CONTINUE: continue whileLoop;
+            case RETURN: return ((Interrupt) result).value;
+          }
+        }
       }
     } else {
       // a backward loop
+      whileLoop:
       while (current.compareTo(to) >= 0) {
         memory.enterScope();
         memory.declareVar(false, name, current);
-        f.body.accept(this);
+        Object result = f.body.accept(this);
         memory.leaveScope();
         current = current.sub(by);
+
+        if (result instanceof Interrupt) {
+          switch (((Interrupt) result).type) {
+            case BREAK: break whileLoop;
+            //case CONTINUE: continue whileLoop;
+            case RETURN: return ((Interrupt) result).value;
+          }
+        }
       }
     }
     return null;
+  }
+
+  @Override
+  public Object interruptSmt(InterruptSmt iSmt) {
+    return new Interrupt(iSmt.token, iSmt.type, iSmt.value == null ? null : iSmt.value.accept(this));
   }
 
   @Override

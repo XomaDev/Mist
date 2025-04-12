@@ -24,7 +24,7 @@ public class Parser {
   public Statements parse() {
     List<Expr> expressions = new ArrayList<>();
     while (notEOF()) {
-      expressions.add(parseStatement());
+      expressions.add(parseSmt());
     }
     for (Expr expression : expressions) {
       System.out.println(expression);
@@ -33,34 +33,42 @@ public class Parser {
     return new Statements(expressions);
   }
 
-  private Expr parseStatement() {
+  private Expr parseSmt() {
     Token token = eat();
     switch (token.type) {
       case VAR:
       case GLOBAL:
-        return varStatement(token);
+        return varSmt(token);
       case IF: return ifExpr(token);
       case FOR: return forExpr(token);
       case WHILE: return whileExpr(token);
-      case VOID:
-      case RET:
+      case FUN:
         return fnExpr(token);
+      case RETURN:
+      case BREAK:
+      case CONTINUE:
+        return interruptSmt(token);
       default:
         back();
         return parseExpr();
     }
   }
 
-  private VarStatement varStatement(Token token) {
+  private VarSmt varSmt(Token token) {
     String name = readAlpha();
     expect(Type.ASSIGNMENT);
     Expr value = parseExpr();
     manager.defineVr(name);
-    return new VarStatement(token, token.type == Type.GLOBAL, name, value);
+    return new VarSmt(token, token.type == Type.GLOBAL, name, value);
+  }
+
+  private InterruptSmt interruptSmt(Token token) {
+    if (token.type != Type.RETURN) return new InterruptSmt(token, token.type, null);
+    boolean hasValue = consume(Type.COLON);
+    return new InterruptSmt(token, token.type, hasValue ? body() : null);
   }
 
   private Expr fnExpr(Token token) {
-    boolean returning = token.type == Type.RET;
     String name = readAlpha();
     List<String> paramNames = isNext(Type.OPEN_CURVE) ? paramNames() : new ArrayList<String>();
     expect(Type.COLON);
@@ -69,7 +77,7 @@ public class Parser {
     for (String param : paramNames) manager.defineVr(param);
     Expr body = body();
     manager.leaveScope(false);
-    return new Function(token, name, returning, paramNames, body);
+    return new Function(token, name, paramNames, body);
   }
 
   private List<String> paramNames() {
@@ -135,7 +143,7 @@ public class Parser {
     while (notEOF()) {
       Token p = peek();
       if (p.type == Type.CLOSE_CURVE || p.hasFlag(Flag.NEW_BODY)) break;
-      expressions.add(parseExpr());
+      expressions.add(parseSmt());
     }
     return new Statements(expressions);
   }
@@ -174,7 +182,7 @@ public class Parser {
     if (token.hasFlag(Flag.CONTEXT)) {
       return varAccess(token);
     } else if (token.type == Type.OPEN_CURVE) {
-      Expr expr = parseStatement();
+      Expr expr = parseSmt();
       expect(Type.CLOSE_CURVE);
       return expr;
     } else if (token.type == Type.OPEN_SQUARE) {
@@ -277,7 +285,7 @@ public class Parser {
     }
     List<Expr> arguments = new ArrayList<>();
     while (notEOF()) {
-      arguments.add(parseStatement());
+      arguments.add(parseSmt());
       if (!isNext(Type.COMMA)) break;
       skip();
     }
@@ -286,13 +294,13 @@ public class Parser {
   }
 
   private String readAlpha() {
-    Token token = tokens.get(index++);
+    Token token = eat();
     if (token.type == Type.ALPHA) return (String) token.data;
     return token.error("Expected type alpha but got " + token.type);
   }
 
   private Token expect(Type type) {
-    Token token = tokens.get(index++);
+    Token token = eat();
     if (token.type == type) return token;
     return token.error("Expected token type " + type + " but got " + token.type);
   }

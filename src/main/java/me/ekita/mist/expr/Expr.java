@@ -24,7 +24,7 @@ public abstract class Expr {
     R unary(Unary unary);
     R binary(Binary binary);
 
-    R varSmt(VarStatement smt);
+    R varSmt(VarSmt smt);
     R varGet(VarGet get);
     R varSet(VarSet set);
 
@@ -33,6 +33,7 @@ public abstract class Expr {
     R ifExpr(IfExpr ifExpr);
     R whileLoop(While l);
     R forLoop(For f);
+    R interruptSmt(InterruptSmt iSmt);
 
     R functionCall(FunctionCall call);
     R moduleCall(ModuleCall call);
