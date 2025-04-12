@@ -24,6 +24,16 @@ public class Frame {
     throw new RuntimeException("Unable to find variable " + name);
   }
 
+  public boolean setVar(int index, String name, Object newValue) {
+    if (entries.size() > index) {
+      Entry entry = entries.get(index);
+      if (entry != null) entry.value = newValue;
+      return entry != null;
+    }
+    if (superFrame != null) return superFrame.setVar(index, name, newValue);
+    throw new RuntimeException("Unable to find variable " + name);
+  }
+
   public void reset(Frame newSuperFrame) {
     superFrame = newSuperFrame;
     entries.clear();

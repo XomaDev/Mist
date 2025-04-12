@@ -3,13 +3,13 @@ package me.ekita.mist.expr;
 import me.ekita.mist.syntax.Token;
 import org.jetbrains.annotations.Nullable;
 
-public class SetVar extends Expr {
+public class VarStatement extends Expr {
 
   public final boolean global;
   public final String name;
   public final Expr expr;
 
-  public SetVar(@Nullable Token token, boolean global, String name, Expr expr) {
+  public VarStatement(@Nullable Token token, boolean global, String name, Expr expr) {
     super(token);
     this.global = global;
     this.name = name;
@@ -18,15 +18,15 @@ public class SetVar extends Expr {
 
   @Override
   public <R> R accept(Visitor<R> v) {
-    return v.setVr(this);
+    return v.varSmt(this);
   }
 
   @Override
   public String toString() {
-    return "SetVar{" +
-        "global=" + global +
-        ", name='" + name + '\'' +
-        ", expr=" + expr +
-        '}';
+    return "VarSmt(" +
+        (global ? " glob " : " ") +
+        name + " " +
+        expr.toString() +
+        ")";
   }
 }

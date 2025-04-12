@@ -127,15 +127,6 @@ public class Evaluator implements Expr.Visitor<Object> {
         return numericExpr(t, bin.left).div(numericExpr(t, bin.right));
       case POWER:
         return numericExpr(t, bin.left).pow(numericExpr(t, bin.right));
-      case ASSIGNMENT:
-        Object result = bin.right.accept(this);
-        if (bin.left instanceof GetVar) {
-          GetVar getVar = (GetVar) bin.left;
-          memory.declareVar(getVar.global, getVar.name, result);
-          return result;
-        }
-        memory.declareVar(false, (String) bin.left.accept(this), result);
-        return result;
       case EQUALS:
       case NOT_EQUALS:
         Object left = bin.left.accept(this);
@@ -169,19 +160,25 @@ public class Evaluator implements Expr.Visitor<Object> {
   public boolean valueEquals(Object left, Object right) {
     if (left instanceof RNumber && right instanceof RNumber)
       return ((RNumber) left).compareTo((RNumber) right) == 0;
-    return left == right;
+    return left.equals(right);
   }
 
   @Override
-  public Object getVr(GetVar v) {
-    return memory.getVar(v.global, v.index, v.name);
+  public Object varSmt(VarStatement smt) {
+    Object value = smt.expr.accept(this);
+    memory.declareVar(smt.global, smt.name, value);
+    return value;
   }
 
   @Override
-  public Object setVr(SetVar v) {
-    Object result = v.expr.accept(this);
-    memory.declareVar(v.global, v.name, result);
-    return result;
+  public Object varSet(VarSet set) {
+    // We'll get back to this later
+    return memory.setVar(set.global, set.name, set.index, set.value.accept(this));
+  }
+
+  @Override
+  public Object varGet(VarGet get) {
+    return memory.getVar(get.global, get.index, get.name);
   }
 
   @Override
@@ -209,6 +206,17 @@ public class Evaluator implements Expr.Visitor<Object> {
       memory.leaveScope();
     }
     return exprResult;
+  }
+
+  @Override
+  public Object whileLoop(While l) {
+    Expr condition = l.condition;
+    while (boolExpr(l.token, condition)) {
+      memory.enterScope();
+      l.body.accept(this);
+      memory.leaveScope();
+    }
+    return null;
   }
 
   @Override

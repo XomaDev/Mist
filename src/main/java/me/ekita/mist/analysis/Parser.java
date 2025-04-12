@@ -36,10 +36,12 @@ public class Parser {
   private Expr parseStatement() {
     Token token = eat();
     switch (token.type) {
-      case IF:
-        return ifExpr(token);
-      case FOR:
-        return forExpr(token);
+      case VAR:
+      case GLOBAL:
+        return varStatement(token);
+      case IF: return ifExpr(token);
+      case FOR: return forExpr(token);
+      case WHILE: return whileExpr(token);
       case VOID:
       case RET:
         return fnExpr(token);
@@ -47,6 +49,14 @@ public class Parser {
         back();
         return parseExpr();
     }
+  }
+
+  private VarStatement varStatement(Token token) {
+    String name = readAlpha();
+    expect(Type.ASSIGNMENT);
+    Expr value = parseExpr();
+    manager.defineVr(name);
+    return new VarStatement(token, token.type == Type.GLOBAL, name, value);
   }
 
   private Expr fnExpr(Token token) {
@@ -72,6 +82,15 @@ public class Parser {
     }
     expect(Type.CLOSE_CURVE);
     return paramNames;
+  }
+
+  private While whileExpr(Token token) {
+    Expr condition = parseExpr();
+    expect(Type.COLON);
+    manager.enterScope(true);
+    Statements body = body();
+    manager.leaveScope(true);
+    return new While(token, condition, body);
   }
 
   private For forExpr(Token token) {
@@ -164,6 +183,8 @@ public class Parser {
       return makeDict(token);
     } else if (token.hasFlag(Flag.VALUE)) {
       Expr expr = parseValue(token);
+      if (expr instanceof VarGet && consume(Type.ASSIGNMENT))
+        return new VarSet(token, false, ((VarGet) expr).name, ((VarGet) expr).index, parseExpr());
       if (!(expr instanceof Name)) return expr;
       // check if it's some kind of function invocation!
       int nameIndex = ((Name) expr).index;
@@ -178,6 +199,22 @@ public class Parser {
       return new Unary(token, token.type, parseExpr());
     }
     return token.error("Unexpected token");
+  }
+
+  private Expr varAccess(Token token) {
+    // it's either a get or a set, with explicit scope
+    expect(Type.DOT);
+    String name = readAlpha();
+    int index = manager.resolveVr(name);
+    if (index < 0)
+      return token.error("Symbol not found");
+    if (consume(Type.ASSIGNMENT)) {
+      // it's a set var access
+      Expr value = parseExpr();
+      return new VarSet(token, token.type == Type.GLOBAL, name, index, value);
+    }
+    // a simple get
+    return new VarGet(token, token.type == Type.GLOBAL, name, index);
   }
 
   private MakeDict makeDict(Token token) {
@@ -211,23 +248,6 @@ public class Parser {
     return new ModuleCall(token, moduleName, funcName, arguments());
   }
 
-  private Expr varAccess(Token token) {
-    // token => `var` or `glob`
-    if (isNext(Type.DOT)) {
-      // it's a GetVr
-      skip();
-      String name = readAlpha();
-      int vrIndex = manager.resolveVr(name);
-      if (vrIndex == -1) throw new RuntimeException("Cannot find symbol '" + name + "'");
-      return new GetVar(token, token.type == Type.GLOBAL, name, vrIndex);
-    }
-    String name = readAlpha();
-    expect(Type.ASSIGNMENT);
-    Expr expr = parseExpr();
-    manager.defineVr(name);
-    return new SetVar(token, token.type == Type.GLOBAL, name, expr);
-  }
-
   public Expr parseValue(Token token) {
     switch (token.type) {
       case M_TRUE:
@@ -241,7 +261,7 @@ public class Parser {
         String name = (String) token.data;
         // check for variable referencing
         int varIndex = manager.resolveVr(name);
-        if (varIndex != -1) return new Name(token, varIndex);
+        if (varIndex != -1) return new VarGet(token, false, name, varIndex);
         // maybe it's part of a function call
         return new Name(token, -2);
       default:
@@ -275,6 +295,15 @@ public class Parser {
     Token token = tokens.get(index++);
     if (token.type == type) return token;
     return token.error("Expected token type " + type + " but got " + token.type);
+  }
+
+  private boolean consume(Type type) {
+    Token token = tokens.get(index);
+    if (token.type == type) {
+      skip();
+      return true;
+    }
+    return false;
   }
 
   private boolean isNext(Type type) {

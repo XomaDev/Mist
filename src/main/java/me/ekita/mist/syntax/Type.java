@@ -35,7 +35,7 @@ public enum Type {
 
   MAKE_LIST, MAKE_DICT,
 
-  FOR,
+  FOR, WHILE,
   WHEN,
   VOID, RET,
 
@@ -69,7 +69,7 @@ public enum Type {
       put("/", new StaticToken(Type.SLASH, Flag.BINARY, Flag.OPERATOR));
       put("*", new StaticToken(Type.TIMES, Flag.BINARY, Flag.OPERATOR));
       put("^", new StaticToken(Type.POWER, Flag.BINARY, Flag.OPERATOR));
-      put(":", new StaticToken(Type.COLON, Flag.BINARY, Flag.OPERATOR)); // dictionary pair
+      put(":", new StaticToken(Type.COLON));
 
       put("+", new StaticToken(Type.PLUS, Flag.UNARY, Flag.OPERATOR));
       put("-", new StaticToken(Type.NEGATE, Flag.UNARY, Flag.OPERATOR));
@@ -109,6 +109,7 @@ public enum Type {
       put("with", new StaticToken(WITH));
 
       put("for", new StaticToken(FOR));
+      put("while", new StaticToken(WHILE));
       put("when", new StaticToken(WHEN, Flag.WHEN));
       put("void", new StaticToken(VOID, Flag.PROCEDURE_HEADER));
       put("returning", new StaticToken(RET, Flag.PROCEDURE_HEADER));

@@ -24,12 +24,14 @@ public abstract class Expr {
     R unary(Unary unary);
     R binary(Binary binary);
 
-    R getVr(GetVar v);
-    R setVr(SetVar v);
+    R varSmt(VarStatement smt);
+    R varGet(VarGet get);
+    R varSet(VarSet set);
 
     R statements(Statements statements);
 
     R ifExpr(IfExpr ifExpr);
+    R whileLoop(While l);
     R forLoop(For f);
 
     R functionCall(FunctionCall call);

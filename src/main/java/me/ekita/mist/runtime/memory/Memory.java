@@ -43,6 +43,10 @@ public class Memory {
     entries.add(new Entry(name, value));
   }
 
+  public boolean setVar(boolean global, String name, int index, Object value) {
+    return global ? globalFrame.setVar(index, name, value) : currentFrame.setVar(index, name, value);
+  }
+
   public Object getVar(boolean global, int index, String name) {
     return global ? globalFrame.getVar(index, name) : currentFrame.getVar(index, name);
   }
