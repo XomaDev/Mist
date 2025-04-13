@@ -65,9 +65,13 @@ public class Parser {
   }
 
   private InterruptSmt interruptSmt(Token token) {
-    if (token.type != Type.RETURN) return new InterruptSmt(token, token.type, null);
-    boolean hasValue = consume(Type.COLON);
-    return new InterruptSmt(token, token.type, hasValue ? body() : null);
+    if (token.type == Type.RETURN) {
+      boolean hasValue = consume(Type.COLON);
+      return new InterruptSmt(token, token.type, hasValue ? body() : null);
+    }
+    if (!manager.inIterativeScope())
+      return token.error("Loop interruption cannot be used here");
+    return new InterruptSmt(token, token.type, null);
   }
 
   private Expr fnExpr(Token token) {

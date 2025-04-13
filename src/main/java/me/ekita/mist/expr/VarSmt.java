@@ -24,7 +24,7 @@ public class VarSmt extends Expr {
   @Override
   public String toString() {
     return "VarSmt(" +
-        (global ? " glob " : " ") +
+        (global ? "glob " : "") +
         name + " " +
         expr.toString() +
         ")";
