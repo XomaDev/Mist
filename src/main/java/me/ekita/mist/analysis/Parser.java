@@ -44,8 +44,8 @@ public class Parser {
       case FOR: return forExpr(token);
       case EACH: return forEachExpr(token);
       case WHILE: return whileExpr(token);
-      case FUN:
-        return fnExpr(token);
+      case FUN: return fnExpr(token);
+      case ON: return onExpr(token);
       case RETURN:
       case BREAK:
       case CONTINUE:
@@ -80,6 +80,15 @@ public class Parser {
     Expr body = body();
     manager.leaveScope(false);
     return new Function(token, name, paramNames, body);
+  }
+
+  private Expr onExpr(Token token) {
+    String component = readAlpha();
+    expect(Type.DOT);
+    String name = readAlpha();
+    List<String> paramNames = paramNames();
+    expect(Type.COLON);
+    return new On(token, component, name, paramNames, body());
   }
 
   private List<String> paramNames() {

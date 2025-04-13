@@ -42,6 +42,7 @@ public abstract class Expr {
     R objectCall(ObjectCall call);
 
     R function(Function func);
+    R on(On o);
   }
 
   public abstract <R> R accept(Visitor<R> v);

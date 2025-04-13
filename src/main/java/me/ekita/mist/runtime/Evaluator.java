@@ -434,4 +434,11 @@ public class Evaluator implements Expr.Visitor<Object> {
     functions.put(func.parameterNames.size() + func.name, func);
     return null;
   }
+
+  @Override
+  public Object on(On o) {
+    // providing a way for external interaction!
+    // We don't need to implement this now :)
+    return null;
+  }
 }
