@@ -13,6 +13,7 @@ public enum Type {
   SLASH, TIMES, REMAINDER, POWER,
   PLUS, NEGATE,
   EXCLAMATION,
+  RIGHT_ARROW,
 
   ASSIGNMENT,
   DOT,
@@ -31,11 +32,12 @@ public enum Type {
 
   IF, ELIF, ELSE,
   TO, BY, IN, WITH,
-  COLON,
+  COLON, DOUBLE_COLON,
 
   MAKE_LIST, MAKE_DICT,
 
-  FOR, WHILE,
+  FOR, EACH,
+  WHILE,
   WHEN,
   FUN,
 
@@ -69,11 +71,13 @@ public enum Type {
       put("/", new StaticToken(Type.SLASH, Flag.BINARY, Flag.OPERATOR));
       put("*", new StaticToken(Type.TIMES, Flag.BINARY, Flag.OPERATOR));
       put("^", new StaticToken(Type.POWER, Flag.BINARY, Flag.OPERATOR));
+      put("::", new StaticToken(Type.DOUBLE_COLON));
       put(":", new StaticToken(Type.COLON));
 
       put("+", new StaticToken(Type.PLUS, Flag.UNARY, Flag.OPERATOR));
       put("-", new StaticToken(Type.NEGATE, Flag.UNARY, Flag.OPERATOR));
 
+      put("->", new StaticToken(Type.RIGHT_ARROW));
       put("!", new StaticToken(Type.EXCLAMATION, Flag.UNARY));
 
       put(".", new StaticToken(Type.DOT));
@@ -109,6 +113,7 @@ public enum Type {
       put("with", new StaticToken(WITH));
 
       put("for", new StaticToken(FOR));
+      put("each", new StaticToken(EACH));
       put("while", new StaticToken(WHILE));
       put("when", new StaticToken(WHEN, Flag.WHEN));
       put("fun", new StaticToken(FUN));

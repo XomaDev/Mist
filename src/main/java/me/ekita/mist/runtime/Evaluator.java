@@ -59,6 +59,11 @@ public class Evaluator implements Expr.Visitor<Object> {
     return expr.token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
+  public RNumber numericCast(Token token, Object value) {
+    if (value instanceof RNumber) return (RNumber) value;
+    return token.error("Expected RNumber but got " + value + " of class " + value.getClass());
+  }
+
   public boolean boolExpr(Token token, Expr expr) {
     Object result = unboxEval(expr);
     if (result instanceof Boolean) return (boolean) result;
@@ -91,11 +96,11 @@ public class Evaluator implements Expr.Visitor<Object> {
   public Object makeDict(MakeDict makeDict) {
     RDictionary evaluated = new RDictionary();
     for (Expr entry : makeDict.entries) {
-      if (!(entry instanceof Binary && ((Binary) entry).type == Type.COLON)) {
+      if (!(entry instanceof Pair)) {
         Object value = unboxEval(entry);
         return makeDict.token.error("Not a valid dictionary entry, got " + value + " of class " + value.getClass());
       }
-      evaluated.put(unboxEval(((Binary) entry).left), unboxEval(((Binary) entry).right));
+      evaluated.put(unboxEval(((Pair) entry).key), unboxEval(((Pair) entry).value));
     }
     return evaluated;
   }
@@ -126,7 +131,7 @@ public class Evaluator implements Expr.Visitor<Object> {
     Token t = bin.token;
     switch (bin.type) {
       case PLUS:
-        return numericExpr(t, bin.left).add(numericExpr(t, bin.right));
+        return performPlus(bin, t);
       case NEGATE:
         return numericExpr(t, bin.left).sub(numericExpr(t, bin.right));
       case TIMES:
@@ -163,6 +168,14 @@ public class Evaluator implements Expr.Visitor<Object> {
       default:
         return t.error("Unknown binary operator type: " + bin.type);
     }
+  }
+
+  private Object performPlus(Binary bin, Token t) {
+    Object left = unboxEval(bin.left);
+    Object right = unboxEval(bin.right);
+    if (left instanceof String || right instanceof String)
+      return String.valueOf(left) + right;
+    return numericCast(t, left).add(numericCast(t, right));
   }
 
   public boolean valueEquals(Object left, Object right) {
@@ -239,9 +252,11 @@ public class Evaluator implements Expr.Visitor<Object> {
 
       if (result instanceof Interrupt) {
         switch (((Interrupt) result).type) {
-          case BREAK: break whileLoop;
+          case BREAK:
+            break whileLoop;
           //case CONTINUE: continue whileLoop;
-          case RETURN: return ((Interrupt) result).value;
+          case RETURN:
+            return ((Interrupt) result).value;
         }
       }
     }
@@ -267,9 +282,11 @@ public class Evaluator implements Expr.Visitor<Object> {
 
         if (result instanceof Interrupt) {
           switch (((Interrupt) result).type) {
-            case BREAK: break whileLoop;
+            case BREAK:
+              break whileLoop;
             //case CONTINUE: continue whileLoop;
-            case RETURN: return ((Interrupt) result).value;
+            case RETURN:
+              return ((Interrupt) result).value;
           }
         }
       }
@@ -285,14 +302,67 @@ public class Evaluator implements Expr.Visitor<Object> {
 
         if (result instanceof Interrupt) {
           switch (((Interrupt) result).type) {
-            case BREAK: break whileLoop;
+            case BREAK:
+              break whileLoop;
             //case CONTINUE: continue whileLoop;
-            case RETURN: return ((Interrupt) result).value;
+            case RETURN:
+              return ((Interrupt) result).value;
           }
         }
       }
     }
     return null;
+  }
+
+  @Override
+  public Object forEach(ForEach f) {
+    Object iterable = unboxEval(f.iterable);
+    if (!(iterable instanceof List<?>))
+      return f.token.error("Expected a list type but got " + iterable + " of class " + iterable.getClass().getName());
+    List<Object> elements = (List<Object>) iterable;
+
+    int numIterations = 0;
+    forLoop:
+    for (Object element : elements) {
+      numIterations++;
+      memory.enterScope();
+      memory.declareVar(false, f.asName, element);
+      Object result = f.body.accept(this);
+      memory.leaveScope();
+
+      if (result instanceof Interrupt) {
+        switch (((Interrupt) result).type) {
+          case BREAK: break forLoop;
+          case RETURN: return ((Interrupt) result).value;
+        }
+      }
+    }
+    return numIterations;
+  }
+
+  @Override
+  public Object forEachPair(ForEachPair f) {
+    Object iterable = unboxEval(f.iterable);
+    if (!(iterable instanceof Map<?, ?>))
+      return f.token.error("Expected a map type but got " + iterable + " of class " + iterable.getClass().getName());
+    Map<Object, Object> map = (Map<Object, Object>) iterable;
+
+    int numIterations = 0;
+    forLoop:
+    for (Map.Entry<Object, Object> entry : map.entrySet()) {
+      memory.enterScope();
+      memory.declareVar(false, f.keyName, entry.getKey());
+      memory.declareVar(false, f.valueName, entry.getValue());
+      Object result = f.body.accept(this);
+      memory.leaveScope();
+      if (result instanceof Interrupt) {
+        switch (((Interrupt) result).type) {
+          case BREAK: break forLoop;
+          case RETURN: return ((Interrupt) result).value;
+        }
+      }
+    }
+    return numIterations;
   }
 
   @Override
@@ -353,7 +423,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   private String getModuleName(Token token, Object value) {
     if (value instanceof String) return "Text";
     else if (value instanceof RNumber) return "Number";
-    //else if (value instanceof Boolean) return "Logic";
+      //else if (value instanceof Boolean) return "Logic";
     else if (value instanceof RList) return "List";
     else if (value instanceof RDictionary) return "Dict";
     return token.error("Module unknown for value: " + value);

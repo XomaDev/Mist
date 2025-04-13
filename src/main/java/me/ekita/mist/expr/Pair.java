@@ -18,4 +18,12 @@ public class Pair extends Expr {
   public <R> R accept(Visitor<R> v) {
     return v.pair(this);
   }
+
+  @Override
+  public String toString() {
+    return "Pair{" +
+        "key=" + key +
+        ", value=" + value +
+        '}';
+  }
 }

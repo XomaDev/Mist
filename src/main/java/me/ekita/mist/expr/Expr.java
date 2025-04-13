@@ -33,6 +33,8 @@ public abstract class Expr {
     R ifExpr(IfExpr ifExpr);
     R whileLoop(While l);
     R forLoop(For f);
+    R forEach(ForEach f);
+    R forEachPair(ForEachPair f);
     R interruptSmt(InterruptSmt iSmt);
 
     R functionCall(FunctionCall call);

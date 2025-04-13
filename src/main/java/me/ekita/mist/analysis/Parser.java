@@ -7,6 +7,7 @@ import me.ekita.mist.syntax.Type;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Parser {
 
@@ -41,6 +42,7 @@ public class Parser {
         return varSmt(token);
       case IF: return ifExpr(token);
       case FOR: return forExpr(token);
+      case EACH: return forEachExpr(token);
       case WHILE: return whileExpr(token);
       case FUN:
         return fnExpr(token);
@@ -117,6 +119,32 @@ public class Parser {
     Statements body = body();
     manager.leaveScope(true);
     return new For(token, name, from, to, by, body);
+  }
+
+  private Expr forEachExpr(Token token) {
+    manager.enterScope(true);
+    String key = readAlpha();
+    manager.defineVr(key);
+
+    Expr resultExpr;
+    if (consume(Type.DOUBLE_COLON)) {
+      // it's a dictionary iteration
+      String value = readAlpha();
+      manager.defineVr(value);
+      expect(Type.RIGHT_ARROW);
+      Expr iterable = parseSmt();
+      expect(Type.COLON);
+      Expr body = body();
+      resultExpr = new ForEachPair(token, iterable, key, value, body);
+    } else {
+      expect(Type.RIGHT_ARROW);
+      Expr iterable = parseSmt();
+      expect(Type.COLON);
+      Expr body = body();
+      resultExpr = new ForEach(token, iterable, key, body);
+    }
+    manager.leaveScope(true);
+    return resultExpr;
   }
 
   private Expr ifExpr(Token token) {
@@ -229,12 +257,19 @@ public class Parser {
     if (isNext(Type.CLOSE_CURLY)) return new MakeDict(token, new ArrayList<Expr>());
     List<Expr> entries = new ArrayList<>();
     while (notEOF()) {
-      entries.add(parseExpr());
+      entries.add(parsePair());
       if (!isNext(Type.COMMA)) break;
       skip();
     }
     expect(Type.CLOSE_CURLY);
     return new MakeDict(token, entries);
+  }
+
+  private Pair parsePair() {
+    Expr key = parseSmt();
+    expect(Type.COLON);
+    Expr value = parseExpr();
+    return new Pair(key.token, key, value);
   }
 
   private MakeList makeList(Token token) {

@@ -39,7 +39,7 @@ public class Lexer {
         tokens.add(createOp("+"));
         break;
       case '-':
-        tokens.add(createOp("-"));
+        tokens.add(consume('>') ? createOp("->") : createOp("-"));
         break;
       case '*':
         tokens.add(createOp("*"));
@@ -75,7 +75,7 @@ public class Lexer {
         tokens.add(createOp("}"));
         break;
       case ':':
-        tokens.add(createOp(":"));
+        tokens.add(consume(':') ? createOp("::") : createOp(":"));
         break;
       case '.':
         tokens.add(createOp("."));
