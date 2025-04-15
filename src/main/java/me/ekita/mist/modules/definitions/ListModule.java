@@ -24,11 +24,12 @@ public class ListModule extends Module {
         return args.get(0).accept(runtime) instanceof List<?>;
       }
     });
-
-    defineMethod("add", 1, new ModMethod() {
+    defineMethod("add", -1, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
-        return asList(token, object).add(args.get(0).accept(runtime));
+        List<Object> list = asList(token, object);
+        for (Expr arg : args) list.add(arg.accept(runtime));
+        return list.size();
       }
     });
     defineMethod("contains", 1, new ModMethod() {
@@ -116,6 +117,22 @@ public class ListModule extends Module {
         return copy;
       }
     });
+    defineMethod("allButFirst", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> list = new ArrayList<>(asList(token, object));
+        list.remove(0);
+        return list;
+      }
+    });
+    defineMethod("allButLast", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> list = new ArrayList<>(asList(token, object));
+        list.remove(list.size() - 1);
+        return list;
+      }
+    });
   }
 
   @Override
@@ -123,6 +140,14 @@ public class ListModule extends Module {
     ModFunction func = super.getFunc(name, paramCount);
     // overriding behaviour to support functions with unlimited arguments like min()
     if (func == null) return super.getFunc(name, -1);
-    return null;
+    return func;
+  }
+
+  @Override
+  public ModMethod getMethod(String name, int paramCount) {
+    ModMethod method = super.getMethod(name, paramCount);
+    // overriding behaviour to support functions with unlimited arguments like min()
+    if (method == null) return super.getMethod(name, -1);
+    return method;
   }
 }

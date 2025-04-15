@@ -13,6 +13,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MathModule extends Module {
 
   public MathModule() {
+    defineFunc("isNum", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return args.get(0).accept(runtime) instanceof RNumber;
+      }
+    });
     defineFunc("bitwiseAnd", 2, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {

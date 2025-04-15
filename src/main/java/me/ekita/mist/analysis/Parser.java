@@ -286,7 +286,8 @@ public class Parser {
   }
 
   private MakeList makeList(Token token) {
-    if (isNext(Type.CLOSE_SQUARE)) return new MakeList(token, new ArrayList<Expr>());
+    if (consume(Type.CLOSE_SQUARE))
+      return new MakeList(token, new ArrayList<Expr>());
     List<Expr> items = new ArrayList<>();
     while (notEOF()) {
       items.add(parseExpr());

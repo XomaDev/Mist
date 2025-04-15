@@ -58,8 +58,8 @@ public enum Type {
     SYMBOLS = new HashMap<String, StaticToken>() {{
       put("=", new StaticToken(Type.ASSIGNMENT, Flag.ASSIGNMENT_TYPE, Flag.OPERATOR));
 
-      put("or", new StaticToken(LOGICAL_OR, Flag.LOGICAL_OR, Flag.OPERATOR));
-      put("and", new StaticToken(LOGICAL_AND, Flag.LOGICAL_AND, Flag.OPERATOR));
+      put("||", new StaticToken(LOGICAL_OR, Flag.LOGICAL_OR, Flag.OPERATOR));
+      put("&&", new StaticToken(LOGICAL_AND, Flag.LOGICAL_AND, Flag.OPERATOR));
 
       put("==", new StaticToken(Type.EQUALS, Flag.EQUALITY, Flag.OPERATOR));
       put("!=", new StaticToken(Type.NOT_EQUALS, Flag.EQUALITY, Flag.OPERATOR));
