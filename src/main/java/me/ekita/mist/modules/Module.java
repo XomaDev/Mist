@@ -11,6 +11,7 @@ public class Module {
   private final Map<String, ModMethod> methods = new HashMap<>();
   private final Map<String, ModPropGet> propGets = new HashMap<>();
   private final Map<String, ModPropSet> propSets = new HashMap<>();
+  private final Map<String, ModTransformer> transformers = new HashMap<>();
 
   public void definePropGet(String name, ModPropGet get) {
     propGets.put(name, get);
@@ -28,6 +29,10 @@ public class Module {
     methods.put(paramCount + name, method);
   }
 
+  public void defineTransformer(String name, ModTransformer transformer) {
+    transformers.put(name, transformer);
+  }
+
   public @Nullable ModPropGet getProp(String name) {
     return propGets.get(name);
   }
@@ -42,5 +47,9 @@ public class Module {
 
   public @Nullable ModMethod getMethod(String name, int paramCount) {
     return methods.get(paramCount + name);
+  }
+
+  public @Nullable ModTransformer getTransformer(String name) {
+    return transformers.get(name);
   }
 }

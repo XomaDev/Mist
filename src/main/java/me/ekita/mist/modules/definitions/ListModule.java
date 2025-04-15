@@ -3,8 +3,10 @@ package me.ekita.mist.modules.definitions;
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
+import me.ekita.mist.modules.ModTransformer;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
+import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 
@@ -24,6 +26,7 @@ public class ListModule extends Module {
         return args.get(0).accept(runtime) instanceof List<?>;
       }
     });
+
     defineMethod("add", -1, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
@@ -106,13 +109,13 @@ public class ListModule extends Module {
     defineMethod("copy", 0, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
-        return new ArrayList<>(asList(token, object));
+        return new RList(asList(token, object));
       }
     });
     defineMethod("reverse", 0, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
-        List<?> copy = new ArrayList<>(asList(token, object));
+        List<?> copy = new RList(asList(token, object));
         Collections.reverse(copy);
         return copy;
       }
@@ -120,7 +123,7 @@ public class ListModule extends Module {
     defineMethod("allButFirst", 0, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
-        List<Object> list = new ArrayList<>(asList(token, object));
+        List<Object> list = new RList(asList(token, object));
         list.remove(0);
         return list;
       }
@@ -128,9 +131,31 @@ public class ListModule extends Module {
     defineMethod("allButLast", 0, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
-        List<Object> list = new ArrayList<>(asList(token, object));
+        List<Object> list = new RList(asList(token, object));
         list.remove(list.size() - 1);
         return list;
+      }
+    });
+
+    defineTransformer("map", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames,
+                              Expr body) {
+        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        List<Object> transformedElements = new RList();
+        String eachElementName = paramNames.get(0);
+
+        for (Object element : elements) {
+          runtime.memory.enterScope();
+          runtime.memory.declareVar(false, eachElementName, element);
+          Object transformedElement = body.accept(runtime);
+          transformedElements.add(transformedElement);
+          runtime.memory.leaveScope();
+        }
+        return transformedElements;
       }
     });
   }

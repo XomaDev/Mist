@@ -4,7 +4,9 @@ import me.ekita.mist.expr.*;
 import me.ekita.mist.syntax.Flag;
 import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
+import org.jetbrains.annotations.NotNull;
 
+import javax.swing.plaf.nimbus.State;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -90,20 +92,29 @@ public class Parser {
     String component = readAlpha();
     expect(Type.DOT);
     String name = readAlpha();
+    manager.enterScope(false);
     List<String> paramNames = paramNames();
+    for (String paramName: paramNames) manager.defineVr(paramName);
     expect(Type.COLON);
-    return new On(token, component, name, paramNames, body());
+    Statements body = body();
+    manager.leaveScope(false);
+    return new On(token, component, name, paramNames, body);
   }
 
   private List<String> paramNames() {
     expect(Type.OPEN_CURVE);
+    List<String> paramNames = paramNamesDirect();
+    expect(Type.CLOSE_CURVE);
+    return paramNames;
+  }
+
+  private List<String> paramNamesDirect() {
     List<String> paramNames = new ArrayList<>();
     while (notEOF()) {
       paramNames.add(readAlpha());
       if (!isNext(Type.COMMA)) break;
       skip();
     }
-    expect(Type.CLOSE_CURVE);
     return paramNames;
   }
 
@@ -211,7 +222,7 @@ public class Parser {
     return left;
   }
 
-  private Expr objectCall(Expr object) {
+  private ObjectCall objectCall(Expr object) {
     expect(Type.DOT);
     String methodName = readAlpha();
     List<Expr> args = arguments();
@@ -241,6 +252,7 @@ public class Parser {
         // either a function call or a module cal
         if (isNext(Type.DOT)) return moduleAccess(token);
         else if (isNext(Type.OPEN_CURVE)) return new FunctionCall(token, (String) token.data, arguments());
+        else if (isNext(Type.DOUBLE_COLON)) return transformCall(token);
         else ((Name) expr).invalidate();
       }
       return expr;
@@ -296,6 +308,21 @@ public class Parser {
     }
     expect(Type.CLOSE_SQUARE);
     return new MakeList(token, items);
+  }
+
+  private Expr transformCall(Token token) {
+    expect(Type.DOUBLE_COLON);
+    String moduleName = (String) token.data;
+    String transformerName = readAlpha();
+    List<Expr> arguments = arguments();
+    expect(Type.RIGHT_ARROW);
+    List<String> paramNames = paramNamesDirect();
+    manager.enterScope(false);
+    for (String paramName : paramNames) manager.defineVr(paramName);
+    expect(Type.COLON);
+    Expr body = body();
+    manager.leaveScope(false);
+    return new TransformCall(token, moduleName, transformerName, arguments, paramNames, body);
   }
 
   private Expr moduleAccess(Token token) {

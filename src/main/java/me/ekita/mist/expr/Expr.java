@@ -42,6 +42,7 @@ public abstract class Expr {
     R functionCall(FunctionCall call);
     R moduleCall(ModuleCall call);
     R objectCall(ObjectCall call);
+    R transformCall(TransformCall call);
 
     R function(Function func);
     R on(On o);

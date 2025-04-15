@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class Evaluator implements Expr.Visitor<Object> {
 
-  private final Memory memory = new Memory();
+  public final Memory memory = new Memory();
   private final Map<String, Function> functions = new HashMap<>();
 
   private final Map<String, Module> modules = new HashMap<>();
@@ -444,6 +444,17 @@ public class Evaluator implements Expr.Visitor<Object> {
     if (method == null)
       return call.token.error("Cannot find object method " + methodName + " in module " + moduleName);
     return method.call(call.token, this, object, call.arguments);
+  }
+
+  @Override
+  public Object transformCall(TransformCall call) {
+    Module module = modules.get(call.moduleName);
+    if (module == null)
+      return call.token.error("Cannot find module " + call.moduleName);
+    ModTransformer transformer = module.getTransformer(call.transformerName);
+    if (transformer == null)
+      return call.token.error("Cannot find transformer " + call.transformerName + " in module " + call.moduleName);
+    return transformer.transform(call.token, this, call.arguments, call.paramNames, call.body);
   }
 
   private String getModuleName(Token token, Object value) {
