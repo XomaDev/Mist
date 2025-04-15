@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Mist {
   public static void main(String[] args) {
-    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/sort.m";
+    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/sort_min.m";
     try (FileInputStream fis = new FileInputStream(filePath)) {
       byte[] bytes = new byte[fis.available()];
       fis.read(bytes);

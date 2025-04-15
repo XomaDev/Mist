@@ -1,5 +1,6 @@
 package me.ekita.mist.modules.definitions;
 
+import javafx.util.Pair;
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
@@ -224,6 +225,75 @@ public class ListModule extends Module {
           }
         });
         return elements;
+      }
+    });
+    defineTransformer("sortKey", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames, Expr body) {
+        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        List<Pair<Object, Object>> pairs = new ArrayList<>();
+        String eachElementName = paramNames.get(0);
+
+        for (Object element : elements) {
+          runtime.memory.enterScope();
+          runtime.memory.declareVar(false, eachElementName, element);
+          Object key = body.accept(runtime);
+          pairs.add(new Pair<>(key, element));
+          runtime.memory.leaveScope();
+        }
+        // TODO: Sort using Collection class, then create new RList and fill in sorted collection values
+        //   and then return it.
+        //   For this we'll first need to figure what sorting mechanism appinventor uses by default
+        return null;
+      }
+    });
+    defineTransformer("sortMin", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              final Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames,
+                              final Expr body) {
+        List<Object> elements = new RList(asList(token, arguments.get(0).accept(runtime)));
+        final String firstElementName = paramNames.get(0), secondElementName = paramNames.get(1);
+        Collections.sort(elements, new Comparator<Object>() {
+          @Override
+          public int compare(Object o1, Object o2) {
+            runtime.memory.enterScope();
+            runtime.memory.declareVar(false, firstElementName, o1);
+            runtime.memory.declareVar(false, secondElementName, o2);
+            boolean o1PrecedesO2 = runtime.boolExpr(body.token, body);
+            runtime.memory.leaveScope();
+            return o1PrecedesO2 ? -1 : 1;
+          }
+        });
+        return elements.isEmpty() ? elements : elements.get(0);
+      }
+    });
+    defineTransformer("sortMax", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              final Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames,
+                              final Expr body) {
+        List<Object> elements = new RList(asList(token, arguments.get(0).accept(runtime)));
+        final String firstElementName = paramNames.get(0), secondElementName = paramNames.get(1);
+        Collections.sort(elements, new Comparator<Object>() {
+          @Override
+          public int compare(Object o1, Object o2) {
+            runtime.memory.enterScope();
+            runtime.memory.declareVar(false, firstElementName, o1);
+            runtime.memory.declareVar(false, secondElementName, o2);
+            boolean o1PrecedesO2 = runtime.boolExpr(body.token, body);
+            runtime.memory.leaveScope();
+            return o1PrecedesO2 ? -1 : 1;
+          }
+        });
+        return elements.isEmpty() ? elements : elements.get(elements.size() - 1);
       }
     });
   }
