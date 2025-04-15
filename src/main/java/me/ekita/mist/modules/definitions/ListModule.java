@@ -12,6 +12,7 @@ import me.ekita.mist.syntax.Token;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -136,6 +137,8 @@ public class ListModule extends Module {
         return list;
       }
     });
+    // TODO: Define Method: Make a List sorted
+    //  We'll need to study how they have implemented the sorting mechanism
 
     defineTransformer("map", new ModTransformer() {
       @Override
@@ -156,6 +159,71 @@ public class ListModule extends Module {
           runtime.memory.leaveScope();
         }
         return transformedElements;
+      }
+    });
+    defineTransformer("filter", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames,
+                              Expr body) {
+        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        List<Object> filteredElements = new RList();
+        String eachElementName = paramNames.get(0);
+
+        for (Object element : elements) {
+          runtime.memory.enterScope();
+          runtime.memory.declareVar(false, eachElementName, element);
+          boolean keep = runtime.boolExpr(body.token, body);
+          if (keep) filteredElements.add(element);
+          runtime.memory.leaveScope();
+        }
+        return filteredElements;
+      }
+    });
+    defineTransformer("reduce", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames,
+                              Expr body) {
+        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        Object answerSoFar = arguments.get(1).accept(runtime);
+
+        String eachElementName = paramNames.get(0), answerSoFarName = paramNames.get(1);
+        for (Object element : elements) {
+          runtime.memory.enterScope();
+          runtime.memory.declareVar(false, eachElementName, element);
+          runtime.memory.declareVar(false, answerSoFarName, answerSoFar);
+          answerSoFar = body.accept(runtime);
+          runtime.memory.leaveScope();
+        }
+        return answerSoFar;
+      }
+    });
+    defineTransformer("sort", new ModTransformer() {
+      @Override
+      public Object transform(Token token,
+                              final Evaluator runtime,
+                              List<Expr> arguments,
+                              List<String> paramNames,
+                              final Expr body) {
+        List<Object> elements = new RList(asList(token, arguments.get(0).accept(runtime)));
+        final String firstElementName = paramNames.get(0), secondElementName = paramNames.get(1);
+        Collections.sort(elements, new Comparator<Object>() {
+          @Override
+          public int compare(Object o1, Object o2) {
+            runtime.memory.enterScope();
+            runtime.memory.declareVar(false, firstElementName, o1);
+            runtime.memory.declareVar(false, secondElementName, o2);
+            boolean o1PrecedesO2 = runtime.boolExpr(body.token, body);
+            runtime.memory.leaveScope();
+            return o1PrecedesO2 ? -1 : 1;
+          }
+        });
+        return elements;
       }
     });
   }

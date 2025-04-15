@@ -453,7 +453,7 @@ public class Evaluator implements Expr.Visitor<Object> {
       return call.token.error("Cannot find module " + call.moduleName);
     ModTransformer transformer = module.getTransformer(call.transformerName);
     if (transformer == null)
-      return call.token.error("Cannot find transformer " + call.transformerName + " in module " + call.moduleName);
+      return call.token.error("Cannot find transformer '" + call.transformerName + "' in module " + call.moduleName);
     return transformer.transform(call.token, this, call.arguments, call.paramNames, call.body);
   }
 
