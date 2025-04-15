@@ -1,0 +1,1 @@
+Sys.println(Color.red)

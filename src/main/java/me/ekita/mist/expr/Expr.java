@@ -37,6 +37,7 @@ public abstract class Expr {
     R forEachPair(ForEachPair f);
     R interruptSmt(InterruptSmt iSmt);
 
+    R propGet(PropGet get);
     R functionCall(FunctionCall call);
     R moduleCall(ModuleCall call);
     R objectCall(ObjectCall call);

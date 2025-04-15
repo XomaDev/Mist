@@ -1,6 +1,9 @@
-package me.ekita.mist.modules;
+package me.ekita.mist.modules.definitions;
 
 import me.ekita.mist.expr.Expr;
+import me.ekita.mist.modules.ModFunction;
+import me.ekita.mist.modules.ModMethod;
+import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.runtime.structs.RDictionary;
 import me.ekita.mist.runtime.structs.RList;

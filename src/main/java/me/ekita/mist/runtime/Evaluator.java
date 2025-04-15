@@ -1,7 +1,9 @@
 package me.ekita.mist.runtime;
 
 import me.ekita.mist.expr.*;
+import me.ekita.mist.expr.PropGet;
 import me.ekita.mist.modules.*;
+import me.ekita.mist.modules.definitions.*;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.Interrupt;
 import me.ekita.mist.runtime.structs.RDictionary;
@@ -368,6 +370,17 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object interruptSmt(InterruptSmt iSmt) {
     return new Interrupt(iSmt.token, iSmt.type, iSmt.value == null ? null : iSmt.value.accept(this));
+  }
+
+  @Override
+  public Object propGet(PropGet get) {
+    Module module = modules.get(get.module);
+    if (module == null)
+      return get.token.error("Cannot find module " + get.module);
+    ModPropGet prop = module.getProp(get.property);
+    if (prop == null)
+      return get.token.error("Cannot find property " + get.property + " in module " + get.module);
+    return prop.get();
   }
 
   @Override

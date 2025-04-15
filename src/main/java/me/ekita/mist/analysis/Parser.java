@@ -239,7 +239,7 @@ public class Parser {
       int nameIndex = ((Name) expr).index;
       if (nameIndex < 0) {
         // either a function call or a module cal
-        if (isNext(Type.DOT)) return moduleCall(token);
+        if (isNext(Type.DOT)) return moduleAccess(token);
         else if (isNext(Type.OPEN_CURVE)) return new FunctionCall(token, (String) token.data, arguments());
         else ((Name) expr).invalidate();
       }
@@ -297,11 +297,14 @@ public class Parser {
     return new MakeList(token, items);
   }
 
-  private ModuleCall moduleCall(Token token) {
+  private Expr moduleAccess(Token token) {
     expect(Type.DOT);
-    String funcName = readAlpha();
+    String name = readAlpha();
     String moduleName = (String) token.data;
-    return new ModuleCall(token, moduleName, funcName, arguments());
+    if (isNext(Type.OPEN_CURVE))
+      return new ModuleCall(token, moduleName, name, arguments());
+    // a simple property access
+    return new PropGet(token, moduleName, name);
   }
 
   public Expr parseValue(Token token) {

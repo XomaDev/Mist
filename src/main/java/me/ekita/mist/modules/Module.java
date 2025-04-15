@@ -9,6 +9,11 @@ public class Module {
 
   private final Map<String, ModFunction> functions = new HashMap<>();
   private final Map<String, ModMethod> methods = new HashMap<>();
+  private final Map<String, ModPropGet> propGets = new HashMap<>();
+
+  public void definePropGet(String name, ModPropGet get) {
+    propGets.put(name, get);
+  }
 
   public void defineFunc(String name, int paramCount, ModFunction func) {
     functions.put(paramCount + name, func);
@@ -16,6 +21,10 @@ public class Module {
 
   public void defineMethod(String name, int paramCount, ModMethod method) {
     methods.put(paramCount + name, method);
+  }
+
+  public @Nullable ModPropGet getProp(String name) {
+    return propGets.get(name);
   }
 
   public @Nullable ModFunction getFunc(String name, int paramCount) {
