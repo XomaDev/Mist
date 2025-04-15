@@ -138,6 +138,20 @@ public class ListModule extends Module {
         return list;
       }
     });
+    defineMethod("join", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        StringBuilder builder = new StringBuilder();
+        String separator = args.get(0).accept(runtime).toString();
+        for (Object element : asList(token, object)) {
+          builder.append(element).append(separator);
+        }
+        if (builder.length() > 0) {
+          builder.setLength(builder.length() - separator.length());
+        }
+        return builder.toString();
+      }
+    });
     // TODO: Define Method: Make a List sorted
     //  We'll need to study how they have implemented the sorting mechanism
 

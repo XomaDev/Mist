@@ -5,10 +5,11 @@ import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
+import me.ekita.mist.runtime.structs.RDictionary;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static me.ekita.mist.modules.ModuleHelper.*;
@@ -143,7 +144,7 @@ public class TextModule extends Module {
         String text = asString(token, object);
 
         int leastIndex = -1, pieceLength = -1;
-        for (Object piece: pieces) {
+        for (Object piece : pieces) {
           String asString = piece.toString();
           int index = text.indexOf(asString);
           if (index == -1) continue;
@@ -190,9 +191,41 @@ public class TextModule extends Module {
         return new StringBuilder(asString(token, object)).reverse().toString();
       }
     });
-    // TODO:
-    //  replace all mappings
-    //           in text
+    defineMethod("replaceFromDict", 2, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        String text = asString(token, object);
+        Map<Object, Object> replacements = asMap(token, args.get(0).accept(runtime));
+        boolean defaultOrder = runtime.boolExpr(args.get(1));
+
+        List<String> keys = new ArrayList<>();
+        for (Object key: replacements.keySet()) keys.add(String.valueOf(key));
+        if (!defaultOrder) {
+          // Longest string first!
+          Collections.sort(keys, new Comparator<Object>() {
+            @Override
+            public int compare(Object a, Object b) {
+              return Integer.compare(String.valueOf(b).length(), String.valueOf(a).length());
+            }
+          });
+        }
+        StringBuilder result = new StringBuilder();
+        for (int i = 0, l = text.length(); i < l; ) {
+          boolean matched = false;
+          keySearch:
+          for (String key: keys) {
+            if (text.startsWith(key, i)) {
+              result.append(replacements.get(key));
+              i += key.length();
+              matched = true;
+              break keySearch;
+            }
+          }
+          if (!matched) result.append(text.charAt(i++));
+        }
+        return result.toString();
+      }
+    });
   }
 
 

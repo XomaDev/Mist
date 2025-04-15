@@ -72,6 +72,12 @@ public class Evaluator implements Expr.Visitor<Object> {
     return token.error("Expected Bool but got " + result + " of class " + result.getClass());
   }
 
+  public boolean boolExpr(Expr expr) {
+    Object result = unboxEval(expr);
+    if (result instanceof Boolean) return (boolean) result;
+    return expr.token.error("Expected Bool but got " + result + " of class " + result.getClass());
+  }
+
   @Override
   public Boolean bool(Bool bool) {
     return bool.value;
