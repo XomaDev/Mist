@@ -304,6 +304,8 @@ public class Parser {
     if (isNext(Type.OPEN_CURVE))
       return new ModuleCall(token, moduleName, name, arguments());
     // a simple property access
+    if (consume(Type.ASSIGNMENT))
+      return new PropSet(token, moduleName, name, parseSmt());
     return new PropGet(token, moduleName, name);
   }
 

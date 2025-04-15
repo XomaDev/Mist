@@ -38,6 +38,7 @@ public abstract class Expr {
     R interruptSmt(InterruptSmt iSmt);
 
     R propGet(PropGet get);
+    R propSet(PropSet set);
     R functionCall(FunctionCall call);
     R moduleCall(ModuleCall call);
     R objectCall(ObjectCall call);

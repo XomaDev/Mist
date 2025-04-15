@@ -384,6 +384,19 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
+  public Object propSet(PropSet set) {
+    Module module = modules.get(set.module);
+    if (module == null)
+      return set.token.error("Cannot find module " + set.module);
+    ModPropSet prop = module.getPropSet(set.property);
+    if (prop == null)
+      return set.token.error("Cannot find property " + set.property + " in module " + set.module);
+    Object value = unboxEval(set.value);
+    prop.set(value);
+    return value;
+  }
+
+  @Override
   public Object functionCall(FunctionCall call) {
     List<Expr> args = call.arguments;
     int argsSize = args.size();

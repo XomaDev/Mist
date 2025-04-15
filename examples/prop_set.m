@@ -1,0 +1,1 @@
+Color.someProp = "Hola World!"

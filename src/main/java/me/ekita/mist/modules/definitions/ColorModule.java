@@ -2,6 +2,7 @@ package me.ekita.mist.modules.definitions;
 
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
+import me.ekita.mist.modules.ModPropSet;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.modules.ModPropGet;
 import me.ekita.mist.runtime.Evaluator;
@@ -36,6 +37,13 @@ public class ColorModule extends Module {
         }
       });
     }
+
+    definePropSet("someProp", new ModPropSet() {
+      @Override
+      public void set(Object value) {
+        System.out.println("[Debug] Color Got Set " + value);
+      }
+    });
 
     defineFunc("make", 1, new ModFunction() {
       @Override
