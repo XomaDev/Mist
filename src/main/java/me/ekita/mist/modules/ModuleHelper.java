@@ -1,6 +1,5 @@
 package me.ekita.mist.modules;
 
-import me.ekita.mist.runtime.structs.RDictionary;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.syntax.Token;
 
@@ -10,6 +9,8 @@ import java.util.Map;
 
 public class ModuleHelper {
 
+  // TODO:
+  //  We;ll need to provide auto conversion from number to string
   public static String asString(Token token, Object value) {
     if (value instanceof String) return (String) value;
     return token.error("Expected a string but got " + value);

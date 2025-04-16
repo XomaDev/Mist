@@ -10,6 +10,9 @@ import me.ekita.mist.syntax.Token;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static me.ekita.mist.modules.ModuleHelper.asString;
+
+
 public class MathModule extends Module {
 
   public MathModule() {
@@ -99,6 +102,34 @@ public class MathModule extends Module {
         return min;
       }
     });
+    defineFunc("decToHex", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        RNumber number = runtime.numericExpr(token, args.get(0));
+        return Long.toHexString(number.longValue());
+      }
+    });
+    defineFunc("hexToDec", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        String hexadecimal = asString(token, args.get(0).accept(runtime));
+        return new RNumber(Long.parseLong(hexadecimal, 16));
+      }
+    });
+    defineFunc("decToBin", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        RNumber number = runtime.numericExpr(token, args.get(0));
+        return Long.toBinaryString(number.longValue());
+      }
+    });
+    defineFunc("binToDec", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        String hexadecimal = asString(token, args.get(0).accept(runtime));
+        return new RNumber(Long.parseLong(hexadecimal, 2));
+      }
+    });
   }
 
   @Override
@@ -106,6 +137,6 @@ public class MathModule extends Module {
     ModFunction func = super.getFunc(name, paramCount);
     // overriding behaviour to support functions with unlimited arguments like min()
     if (func == null) return super.getFunc(name, -1);
-    return null;
+    return func;
   }
 }

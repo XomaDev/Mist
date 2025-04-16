@@ -52,6 +52,13 @@ public class Evaluator implements Expr.Visitor<Object> {
   public RNumber numericExpr(Token token, Expr expr) {
     Object result = unboxEval(expr);
     if (result instanceof RNumber) return (RNumber) result;
+    if (result instanceof String) {
+      // try to parse 'em
+      String string = (String) result;
+      try {
+        return new RNumber(string.contains(".") ? Double.parseDouble(string) : Long.parseLong(string));
+      } catch (NumberFormatException ignored) {}
+    }
     return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
 
@@ -433,7 +440,7 @@ public class Evaluator implements Expr.Visitor<Object> {
       return call.token.error("Cannot find module " + call.moduleName);
     ModFunction func = module.getFunc(call.funcName, call.arguments.size());
     if (func == null)
-      return call.token.error("Cannot find function " + call.funcName + " in module " + call.moduleName);
+      return call.token.error("Cannot find function " + call.funcName + "() in module " + call.moduleName);
     return func.call(call.token, this, call.arguments);
   }
 

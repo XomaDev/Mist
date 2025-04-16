@@ -212,13 +212,12 @@ public class TextModule extends Module {
         StringBuilder result = new StringBuilder();
         for (int i = 0, l = text.length(); i < l; ) {
           boolean matched = false;
-          keySearch:
           for (String key: keys) {
             if (text.startsWith(key, i)) {
               result.append(replacements.get(key));
               i += key.length();
               matched = true;
-              break keySearch;
+              break;
             }
           }
           if (!matched) result.append(text.charAt(i++));
