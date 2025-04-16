@@ -1,6 +1,6 @@
 package me.ekita.mist.runtime.structs;
 
-import me.ekita.mist.runtime.Evaluator;
+import me.ekita.mist.runtime.MistEquality;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
@@ -27,14 +27,6 @@ public class RList extends ArrayList<Object> {
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof RList)) return false;
-    RList list = (RList) o;
-    int size = size();
-    if (size != list.size()) return false;
-    for (int i = 0; i < size; i++) {
-      if (!Evaluator.valueEquals(get(i), list.get(i))) {
-        return false;
-      }
-    }
-    return true;
+    return MistEquality.listEquals(this, (RList) o);
   }
 }

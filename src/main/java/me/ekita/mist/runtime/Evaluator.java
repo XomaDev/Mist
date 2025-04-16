@@ -50,41 +50,37 @@ public class Evaluator implements Expr.Visitor<Object> {
     return new RNumber(Long.parseLong(num.value));
   }
 
-  public RNumber numericExpr(Token token, Expr expr) {
-    Object result = unboxEval(expr);
-    if (result instanceof RNumber) return (RNumber) result;
-    if (result instanceof String) {
+  public static RNumber numericCast(Token token, Object value) {
+    if (value instanceof RNumber) return (RNumber) value;
+    if (value instanceof String) {
       // try to parse 'em
-      String string = (String) result;
+      String string = (String) value;
       try {
         return new RNumber(string.contains(".") ? Double.parseDouble(string) : Long.parseLong(string));
       } catch (NumberFormatException ignored) {
       }
     }
-    return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
+    return token.error("Expected RNumber but got " + value + " of class " + value.getClass());
+  }
+
+  public RNumber numericExpr(Token token, Expr expr) {
+    return numericCast(token, unboxEval(expr));
   }
 
   public RNumber numericExpr(Expr expr) {
-    Object result = unboxEval(expr);
-    if (result instanceof RNumber) return (RNumber) result;
-    return expr.token.error("Expected RNumber but got " + result + " of class " + result.getClass());
-  }
-
-  public RNumber numericCast(Token token, Object value) {
-    if (value instanceof RNumber) return (RNumber) value;
-    return token.error("Expected RNumber but got " + value + " of class " + value.getClass());
+    return numericCast(expr.token, unboxEval(expr));
   }
 
   public boolean boolExpr(Token token, Expr expr) {
     Object result = unboxEval(expr);
     if (result instanceof Boolean) return (boolean) result;
+    if ("true".equals(result) || "false".equals(result))
+      return "true".equals(result);
     return token.error("Expected Bool but got " + result + " of class " + result.getClass());
   }
 
   public boolean boolExpr(Expr expr) {
-    Object result = unboxEval(expr);
-    if (result instanceof Boolean) return (boolean) result;
-    return expr.token.error("Expected Bool but got " + result + " of class " + result.getClass());
+    return boolExpr(expr.token, expr);
   }
 
   @Override

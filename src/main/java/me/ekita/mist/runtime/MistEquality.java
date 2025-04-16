@@ -13,7 +13,7 @@ public class MistEquality {
    * This might be "true" but as a string.
    * Or "123" which is a string, but has numeric content.
    */
-  private static Object unwrapContent(Object value) {
+  public static Object unwrapContent(Object value) {
     if (value instanceof RNumber) {
       return ((RNumber) value).doubleValue();
     }
@@ -27,7 +27,7 @@ public class MistEquality {
     return value;
   }
 
-  private static boolean listEquals(RList left, RList right) {
+  public static boolean listEquals(RList left, RList right) {
     final int size = left.size();
     if (size != right.size()) return false;
     for (int i = 0; i < size; i++) {
@@ -36,7 +36,7 @@ public class MistEquality {
     return true;
   }
 
-  private static boolean dictEquals(RDict left, RDict right) {
+  public static boolean dictEquals(RDict left, RDict right) {
     if (left.size() != right.size()) return false;
     Iterator<Object> leftKeys = left.keySet().iterator(), rightKeys = right.keySet().iterator();
     while (leftKeys.hasNext()) {
