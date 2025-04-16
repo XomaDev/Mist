@@ -205,6 +205,15 @@ public class ListModule extends Module {
         return csvStringBuilder.toString();
       }
     });
+    defineMethod("slice", 2, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> list = asList(token, object);
+        int from = (int) runtime.numericExpr(args.get(0)).longValue();
+        int to = (int) runtime.numericExpr(args.get(1)).longValue();
+        return list.subList(from - 1, to - 1);
+      }
+    });
 
     // TODO: Define Method: Make a List sorted
     //  We'll need to study how they have implemented the sorting mechanism
