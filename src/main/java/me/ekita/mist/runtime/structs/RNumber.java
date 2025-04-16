@@ -2,18 +2,18 @@ package me.ekita.mist.runtime.structs;
 
 import org.jetbrains.annotations.NotNull;
 
-public class RNumber implements Comparable<RNumber> {
+public class RNumber {
 
   private final Number number;
 
   public RNumber(Number number) {
     this.number = number;
   }
-  
+
   public long longValue() {
     return number.longValue();
   }
-  
+
   public double doubleValue() {
     return number.doubleValue();
   }
@@ -72,10 +72,17 @@ public class RNumber implements Comparable<RNumber> {
   }
 
   @Override
-  public boolean equals(Object object) {
-    if (object == null || getClass() != object.getClass()) return false;
-    RNumber rNumber = (RNumber) object;
-    return number.equals(rNumber.number);
+  public boolean equals(Object o) {
+    if (o instanceof String) {
+      try {
+        return number.doubleValue() == Double.parseDouble((String) o);
+      } catch (NumberFormatException e) {
+        return false;
+      }
+    } else if (o instanceof RNumber) {
+      return number.doubleValue() == ((RNumber) o).number.doubleValue();
+    }
+    return false;
   }
 
   @Override

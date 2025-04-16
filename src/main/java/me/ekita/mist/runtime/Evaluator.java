@@ -1,7 +1,6 @@
 package me.ekita.mist.runtime;
 
 import me.ekita.mist.expr.*;
-import me.ekita.mist.expr.PropGet;
 import me.ekita.mist.modules.*;
 import me.ekita.mist.modules.definitions.*;
 import me.ekita.mist.runtime.memory.Memory;
@@ -12,11 +11,12 @@ import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static me.ekita.mist.runtime.MistEquality.contentEquals;
 
 public class Evaluator implements Expr.Visitor<Object> {
 
@@ -48,15 +48,6 @@ public class Evaluator implements Expr.Visitor<Object> {
     // Using ternary operator will mess up coercion
     if (num.isFloat) return new RNumber(Double.parseDouble(num.value));
     return new RNumber(Long.parseLong(num.value));
-  }
-
-  private int compare(Token token, String operator, Expr left, Expr right) {
-    Object leftVal = unboxEval(left), rightVal = unboxEval(right);
-    if (leftVal instanceof RNumber && rightVal instanceof RNumber)
-      return ((RNumber) leftVal).compareTo((RNumber) rightVal);
-    if (leftVal instanceof String || rightVal instanceof String)
-      return String.valueOf(leftVal).compareTo(String.valueOf(rightVal));
-    return token.error("Cannot apply operator " + operator + " on " + leftVal + " and " + rightVal);
   }
 
   public RNumber numericExpr(Token token, Expr expr) {
@@ -170,20 +161,20 @@ public class Evaluator implements Expr.Visitor<Object> {
       case NOT_EQUALS:
         Object first = unboxEval(bin.left);
         Object second = unboxEval(bin.right);
-        if (bin.type == Type.EQUALS) return valueEquals(first, second);
-        return !valueEquals(first, second);
+        if (bin.type == Type.EQUALS) return contentEquals(first, second);
+        return !contentEquals(first, second);
       case LOGICAL_OR:
         return boolExpr(t, bin.left) || boolExpr(t, bin.right);
       case LOGICAL_AND:
         return boolExpr(t, bin.left) && boolExpr(t, bin.right);
       case LEFT_DIAMOND:
-        return compare(t, "<", bin.left, bin.right) < 0;
+        return mathCompare(t, "<", bin.left, bin.right) < 0;
       case RIGHT_DIAMOND:
-        return compare(t, ">", bin.left, bin.right) > 0;
+        return mathCompare(t, ">", bin.left, bin.right) > 0;
       case LESSER_THAN_EQUALS:
-        return compare(t, "<=", bin.left, bin.right) <= 0;
+        return mathCompare(t, "<=", bin.left, bin.right) <= 0;
       case GREATER_THAN_EQUALS:
-        return compare(t, ">=", bin.left, bin.right) >= 0;
+        return mathCompare(t, ">=", bin.left, bin.right) >= 0;
       case COLON:
         RList evaluated = new RList();
         evaluated.add(unboxEval(bin.left));
@@ -194,18 +185,19 @@ public class Evaluator implements Expr.Visitor<Object> {
     }
   }
 
+  private int mathCompare(Token token, String operator, Expr left, Expr right) {
+    Object result = MistEquality.compare(left.accept(this), right.accept(this));
+    if (result instanceof String)
+      token.error("Cannot apply operator '" + operator + "': " + result); // indicates an error
+    return (int) result;
+  }
+
   private Object performPlus(Binary bin, Token t) {
     Object left = unboxEval(bin.left);
     Object right = unboxEval(bin.right);
     if (left instanceof String || right instanceof String)
       return String.valueOf(left) + right;
     return numericCast(t, left).add(numericCast(t, right));
-  }
-
-  public boolean valueEquals(Object left, Object right) {
-    if (left instanceof RNumber && right instanceof RNumber)
-      return ((RNumber) left).compareTo((RNumber) right) == 0;
-    return String.valueOf(left).equals(String.valueOf(right)) || left.equals(right);
   }
 
   @Override
@@ -290,9 +282,9 @@ public class Evaluator implements Expr.Visitor<Object> {
   @Override
   public Object forLoop(For f) {
     String name = f.name;
-    RNumber current = ((RNumber) f.from.accept(this));
-    RNumber to = ((RNumber) f.to.accept(this));
-    RNumber by = ((RNumber) f.by.accept(this));
+    RNumber current = numericExpr(f.token, f.from);
+    RNumber to = numericExpr(f.token, f.to);
+    RNumber by = numericExpr(f.token, f.by);
 
     if (current.compareTo(to) <= 0) {
       // a forward loop

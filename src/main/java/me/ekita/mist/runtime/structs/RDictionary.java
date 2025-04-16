@@ -24,4 +24,7 @@ public class RDictionary extends HashMap<Object, Object> {
     }
     return json.toString();
   }
+
+  // TODO:
+  //  implement a custom equals()
 }
