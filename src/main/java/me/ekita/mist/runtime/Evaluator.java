@@ -12,6 +12,7 @@ import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,15 @@ public class Evaluator implements Expr.Visitor<Object> {
     // Using ternary operator will mess up coercion
     if (num.isFloat) return new RNumber(Double.parseDouble(num.value));
     return new RNumber(Long.parseLong(num.value));
+  }
+
+  private int compare(Token token, String operator, Expr left, Expr right) {
+    Object leftVal = unboxEval(left), rightVal = unboxEval(right);
+    if (leftVal instanceof RNumber && rightVal instanceof RNumber)
+      return ((RNumber) leftVal).compareTo((RNumber) rightVal);
+    if (leftVal instanceof String || rightVal instanceof String)
+      return String.valueOf(leftVal).compareTo(String.valueOf(rightVal));
+    return token.error("Cannot apply operator " + operator + " on " + leftVal + " and " + rightVal);
   }
 
   public RNumber numericExpr(Token token, Expr expr) {
@@ -158,24 +168,22 @@ public class Evaluator implements Expr.Visitor<Object> {
         return numericExpr(t, bin.left).pow(numericExpr(t, bin.right));
       case EQUALS:
       case NOT_EQUALS:
-        Object left = unboxEval(bin.left);
-        Object right = unboxEval(bin.right);
-        if (bin.type == Type.EQUALS) return valueEquals(left, right);
-        return !valueEquals(left, right);
-      // TODO:
-      //  We gotta support Text as well!
+        Object first = unboxEval(bin.left);
+        Object second = unboxEval(bin.right);
+        if (bin.type == Type.EQUALS) return valueEquals(first, second);
+        return !valueEquals(first, second);
       case LOGICAL_OR:
         return boolExpr(t, bin.left) || boolExpr(t, bin.right);
       case LOGICAL_AND:
         return boolExpr(t, bin.left) && boolExpr(t, bin.right);
       case LEFT_DIAMOND:
-        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) < 0;
+        return compare(t, "<", bin.left, bin.right) < 0;
       case RIGHT_DIAMOND:
-        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) > 0;
+        return compare(t, ">", bin.left, bin.right) > 0;
       case LESSER_THAN_EQUALS:
-        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) <= 0;
+        return compare(t, "<=", bin.left, bin.right) <= 0;
       case GREATER_THAN_EQUALS:
-        return numericExpr(t, bin.left).compareTo(numericExpr(t, bin.right)) >= 0;
+        return compare(t, ">=", bin.left, bin.right) >= 0;
       case COLON:
         RList evaluated = new RList();
         evaluated.add(unboxEval(bin.left));
@@ -197,7 +205,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   public boolean valueEquals(Object left, Object right) {
     if (left instanceof RNumber && right instanceof RNumber)
       return ((RNumber) left).compareTo((RNumber) right) == 0;
-    return left.equals(right);
+    return String.valueOf(left).equals(String.valueOf(right)) || left.equals(right);
   }
 
   @Override

@@ -1,6 +1,8 @@
 package me.ekita.mist.runtime.structs;
 
-public class RNumber {
+import org.jetbrains.annotations.NotNull;
+
+public class RNumber implements Comparable<RNumber> {
 
   private final Number number;
 
@@ -63,7 +65,9 @@ public class RNumber {
     return new RNumber(number.longValue() ^ other.longValue());
   }
 
-  public int compareTo(RNumber other) {
+  public int compareTo(@NotNull RNumber other) {
+    if (number instanceof Long && other.number instanceof Long)
+      return Long.compare(number.longValue(), other.number.longValue());
     return Double.compare(number.doubleValue(), other.doubleValue());
   }
 
