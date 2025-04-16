@@ -22,6 +22,18 @@ public class TextModule extends Module {
         return args.get(0).accept(runtime) instanceof String;
       }
     });
+    defineFunc("lessThan", 2, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return String.valueOf(args.get(0).accept(runtime)).compareTo(String.valueOf(args.get(1).accept(runtime))) < 0;
+      }
+    });
+    defineFunc("moreThan", 2, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return String.valueOf(args.get(0).accept(runtime)).compareTo(String.valueOf(args.get(1).accept(runtime))) > 0;
+      }
+    });
 
     defineMethod("len", 0, new ModMethod() {
       @Override
