@@ -10,6 +10,13 @@ import java.util.List;
 
 public class SysModule extends Module {
   public SysModule() {
+    defineFunc("println", 0, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        System.out.println();
+        return 0;
+      }
+    });
     defineFunc("println", 1, new ModFunction() {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {

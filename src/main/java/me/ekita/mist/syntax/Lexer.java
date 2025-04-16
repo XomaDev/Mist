@@ -103,7 +103,7 @@ public class Lexer {
       if (c == '\"') break;
       else if (c == '\\') {
         char e = next();
-        switch (next()) {
+        switch (e) {
           case 'n':
             c = '\n';
             break;

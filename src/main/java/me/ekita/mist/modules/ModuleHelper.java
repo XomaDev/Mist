@@ -15,10 +15,9 @@ public class ModuleHelper {
     return token.error("Expected a number but got " + value);
   }
 
-  // TODO:
-  //  We;ll need to provide auto conversion from number to string
   public static String asString(Token token, Object value) {
     if (value instanceof String) return (String) value;
+    if (value instanceof RNumber) return value.toString();
     return token.error("Expected a string but got " + value);
   }
 

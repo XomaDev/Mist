@@ -10,7 +10,9 @@ import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
+import me.ekita.mist.utils.CsvParser;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static me.ekita.mist.modules.ModuleHelper.asList;
+import static me.ekita.mist.modules.ModuleHelper.asString;
 
 public class ListModule extends Module {
 
@@ -26,6 +29,35 @@ public class ListModule extends Module {
       @Override
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         return args.get(0).accept(runtime) instanceof List<?>;
+      }
+    });
+    defineFunc("fromCsvRow", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        String csvRow = asString(token, args.get(0).accept(runtime));
+        CsvParser parser = new CsvParser(new StringReader(csvRow));
+        if (parser.hasNext()) {
+          RList row = parser.next();
+          if (parser.hasNext()) token.error("CSV text has multiple rows. Expected just one row.");
+          String anyError = parser.anyErrorMessage();
+          if (anyError != null) token.error(anyError);
+          return row;
+        }
+        return token.error("CSV text cannot be parsed as a row.");
+      }
+    });
+    defineFunc("fromCsvTable", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        String csvTable = asString(token, args.get(0).accept(runtime));
+        CsvParser parser = new CsvParser(new StringReader(csvTable));
+        RList rows = new RList();
+        while (parser.hasNext()) {
+          rows.add(parser.next());
+        }
+        String anyError = parser.anyErrorMessage();
+        if (anyError != null) token.error(anyError);
+        return rows;
       }
     });
 
@@ -152,6 +184,28 @@ public class ListModule extends Module {
         return builder.toString();
       }
     });
+    defineMethod("toCsvRow", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> aRow = asList(token, object);
+        StringBuilder csvStringBuilder = new StringBuilder();
+        makeCsvRow(aRow, csvStringBuilder);
+        return csvStringBuilder.toString();
+      }
+    });
+    defineMethod("toCsvTable", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        StringBuilder csvStringBuilder = new StringBuilder();
+        List<Object> rows = asList(token, object);
+        for (Object row : rows) {
+          makeCsvRow((List<Object>) row, csvStringBuilder);
+          csvStringBuilder.append("\r\n");
+        }
+        return csvStringBuilder.toString();
+      }
+    });
+
     // TODO: Define Method: Make a List sorted
     //  We'll need to study how they have implemented the sorting mechanism
 
@@ -310,6 +364,16 @@ public class ListModule extends Module {
         return elements.isEmpty() ? elements : elements.get(elements.size() - 1);
       }
     });
+  }
+
+  private static void makeCsvRow(List<Object> row, StringBuilder csvStringBuilder) {
+    String fieldDelim = "";
+    for (Object fieldObj : row) {
+      String field = fieldObj.toString();
+      field = field.replaceAll("\"", "\"\"");
+      csvStringBuilder.append(fieldDelim).append("\"").append(field).append("\"");
+      fieldDelim = ",";
+    }
   }
 
   @Override
