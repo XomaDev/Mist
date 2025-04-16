@@ -1,6 +1,7 @@
 package me.ekita.mist.modules;
 
 import me.ekita.mist.runtime.structs.RList;
+import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 
 import java.util.Collections;
@@ -8,6 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ModuleHelper {
+
+  public static RNumber asNumber(Token token, Object value) {
+    if (value instanceof RNumber) return (RNumber) value;
+    return token.error("Expected a number but got " + value);
+  }
 
   // TODO:
   //  We;ll need to provide auto conversion from number to string

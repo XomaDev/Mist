@@ -57,7 +57,8 @@ public class Evaluator implements Expr.Visitor<Object> {
       String string = (String) result;
       try {
         return new RNumber(string.contains(".") ? Double.parseDouble(string) : Long.parseLong(string));
-      } catch (NumberFormatException ignored) {}
+      } catch (NumberFormatException ignored) {
+      }
     }
     return token.error("Expected RNumber but got " + result + " of class " + result.getClass());
   }
@@ -347,8 +348,10 @@ public class Evaluator implements Expr.Visitor<Object> {
 
       if (result instanceof Interrupt) {
         switch (((Interrupt) result).type) {
-          case BREAK: break forLoop;
-          case RETURN: return ((Interrupt) result).value;
+          case BREAK:
+            break forLoop;
+          case RETURN:
+            return ((Interrupt) result).value;
         }
       }
     }
@@ -372,8 +375,10 @@ public class Evaluator implements Expr.Visitor<Object> {
       memory.leaveScope();
       if (result instanceof Interrupt) {
         switch (((Interrupt) result).type) {
-          case BREAK: break forLoop;
-          case RETURN: return ((Interrupt) result).value;
+          case BREAK:
+            break forLoop;
+          case RETURN:
+            return ((Interrupt) result).value;
         }
       }
     }
@@ -440,7 +445,8 @@ public class Evaluator implements Expr.Visitor<Object> {
       return call.token.error("Cannot find module " + call.moduleName);
     ModFunction func = module.getFunc(call.funcName, call.arguments.size());
     if (func == null)
-      return call.token.error("Cannot find function " + call.funcName + "() in module " + call.moduleName);
+      return call.token.error("Cannot find function " + call.funcName + "() of arg size "
+          + call.arguments.size() + " in module " + call.moduleName);
     return func.call(call.token, this, call.arguments);
   }
 
@@ -455,7 +461,8 @@ public class Evaluator implements Expr.Visitor<Object> {
       return call.token.error("Cannot find module " + moduleName);
     ModMethod method = module.getMethod(methodName, call.arguments.size());
     if (method == null)
-      return call.token.error("Cannot find object method " + methodName + " in module " + moduleName);
+      return call.token.error("Cannot find object method " + methodName + "() of arg size "
+          + call.arguments.size() + " in module " + moduleName);
     return method.call(call.token, this, object, call.arguments);
   }
 

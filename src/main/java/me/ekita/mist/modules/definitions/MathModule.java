@@ -2,6 +2,7 @@ package me.ekita.mist.modules.definitions;
 
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
+import me.ekita.mist.modules.ModMethod;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.runtime.structs.RNumber;
@@ -10,6 +11,7 @@ import me.ekita.mist.syntax.Token;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static me.ekita.mist.modules.ModuleHelper.asNumber;
 import static me.ekita.mist.modules.ModuleHelper.asString;
 
 
@@ -128,6 +130,19 @@ public class MathModule extends Module {
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         String hexadecimal = asString(token, args.get(0).accept(runtime));
         return new RNumber(Long.parseLong(hexadecimal, 2));
+      }
+    });
+    defineFunc("format", 2, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        RNumber number = runtime.numericExpr(token, args.get(0));
+        int places = (int) runtime.numericExpr(args.get(1)).longValue();
+        if (places == 0) return new RNumber(Math.round(number.doubleValue()));
+        if (places > 0) {
+          String formatted = String.format("%." + places + "f", number.doubleValue());
+          return new RNumber(formatted.contains(".") ? Double.parseDouble(formatted) : Long.parseLong(formatted));
+        }
+        return token.error("Math.format: Places must be a non-negative integer");
       }
     });
   }
