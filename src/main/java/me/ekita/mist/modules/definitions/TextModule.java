@@ -5,7 +5,6 @@ import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
-import me.ekita.mist.runtime.structs.RDictionary;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 

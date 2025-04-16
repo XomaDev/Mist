@@ -5,7 +5,7 @@ import me.ekita.mist.modules.*;
 import me.ekita.mist.modules.definitions.*;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.Interrupt;
-import me.ekita.mist.runtime.structs.RDictionary;
+import me.ekita.mist.runtime.structs.RDict;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
@@ -111,7 +111,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object makeDict(MakeDict makeDict) {
-    RDictionary evaluated = new RDictionary();
+    RDict evaluated = new RDict();
     for (Expr entry : makeDict.entries) {
       if (!(entry instanceof Pair)) {
         Object value = unboxEval(entry);
@@ -482,7 +482,7 @@ public class Evaluator implements Expr.Visitor<Object> {
     else if (value instanceof RNumber) return "Number";
       //else if (value instanceof Boolean) return "Logic";
     else if (value instanceof RList) return "List";
-    else if (value instanceof RDictionary) return "Dict";
+    else if (value instanceof RDict) return "Dict";
     return token.error("Module unknown for value: " + value);
   }
 

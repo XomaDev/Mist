@@ -5,7 +5,7 @@ import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
-import me.ekita.mist.runtime.structs.RDictionary;
+import me.ekita.mist.runtime.structs.RDict;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
@@ -24,7 +24,7 @@ public class DictModule extends Module {
       public Object call(Token token, Evaluator runtime, List<Expr> args) {
         Expr pairsExpr = args.get(0);
         List<Object> pairs = asList(pairsExpr.token, pairsExpr.accept(runtime));
-        RDictionary dict = new RDictionary();
+        RDict dict = new RDict();
 
         for (Object pair: pairs) {
           if (!(pair instanceof List<?>)) {
@@ -172,7 +172,7 @@ public class DictModule extends Module {
     defineMethod("copy", 0, new ModMethod() {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
-        return new RDictionary(asMap(token, object));
+        return new RDict(asMap(token, object));
       }
     });
 

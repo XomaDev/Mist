@@ -5,14 +5,13 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RDictionary extends HashMap<Object, Object> {
+public class RDict extends HashMap<Object, Object> {
 
-  public RDictionary() {
+  public RDict() {
     super();
   }
 
-
-  public RDictionary(Map<?, ?> m) {
+  public RDict(Map<?, ?> m) {
     super(m);
   }
 
@@ -24,7 +23,4 @@ public class RDictionary extends HashMap<Object, Object> {
     }
     return json.toString();
   }
-
-  // TODO:
-  //  implement a custom equals()
 }

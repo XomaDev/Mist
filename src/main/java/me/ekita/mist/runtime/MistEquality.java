@@ -1,7 +1,10 @@
 package me.ekita.mist.runtime;
 
+import me.ekita.mist.runtime.structs.RDict;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
+
+import java.util.Iterator;
 
 public class MistEquality {
 
@@ -25,10 +28,22 @@ public class MistEquality {
   }
 
   private static boolean listEquals(RList left, RList right) {
-    int size = left.size();
+    final int size = left.size();
     if (size != right.size()) return false;
     for (int i = 0; i < size; i++) {
       if (!contentEquals(left.get(i), right.get(i))) return false;
+    }
+    return true;
+  }
+
+  private static boolean dictEquals(RDict left, RDict right) {
+    if (left.size() != right.size()) return false;
+    Iterator<Object> leftKeys = left.keySet().iterator(), rightKeys = right.keySet().iterator();
+    while (leftKeys.hasNext()) {
+      Object leftKey = leftKeys.next(), rightKey = rightKeys.next();
+      if (!contentEquals(leftKey, rightKey)) return false;
+      Object leftValue = left.get(leftKey), rightValue = right.get(rightKey);
+      if (!contentEquals(leftValue, rightValue)) return false;
     }
     return true;
   }
@@ -46,6 +61,7 @@ public class MistEquality {
     // now we do not worry about type discrepancies
     if (left.getClass() != right.getClass()) return false;
     if (left instanceof RList && right instanceof RList) return listEquals((RList) left, (RList) right);
+    if (left instanceof RDict) return dictEquals((RDict) left, (RDict) right);
     return left.equals(right);
   }
 
