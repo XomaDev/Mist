@@ -26,7 +26,7 @@ public class DictModule extends Module {
         List<Object> pairs = asList(pairsExpr.token, pairsExpr.accept(runtime));
         RDict dict = new RDict();
 
-        for (Object pair: pairs) {
+        for (Object pair : pairs) {
           if (!(pair instanceof List<?>)) {
             return token.error("Expected a valid pair but got " + pair + " of class " + pair.getClass().getName());
           }
@@ -77,24 +77,12 @@ public class DictModule extends Module {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
         Expr keysExpr = args.get(0);
-        Iterator<Object> keys = asList(keysExpr.token, keysExpr.accept(runtime)).iterator();
+        RList keys = (RList) asList(keysExpr.token, keysExpr.accept(runtime));
         Object defaultValue = args.get(1).accept(runtime);
+        Map<Object, Object> map = asMap(token, object);
 
-        final Map<Object, Object> map = asMap(token, object);
-        Object result = map;
-
-        while (keys.hasNext()) {
-          Object key = keys.next();
-          result = ((Map<Object, Object>) result).get(key);
-
-          if (result == null) break;
-          if (keys.hasNext() && !(result instanceof Map<?, ?>)) {
-            result = null;
-            break;
-          }
-        }
-
-        return (result == null || result == map) ?  defaultValue: result;
+        Object result = getValueAtKeyPath(keys, map);
+        return result == null ? defaultValue : result;
       }
     });
 
@@ -102,23 +90,12 @@ public class DictModule extends Module {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
         Expr keysExpr = args.get(0);
-        Iterator<Object> keys = asList(keysExpr.token, keysExpr).iterator();
+        RList keys = (RList) asList(keysExpr.token, keysExpr);
         Object value = args.get(1).accept(runtime);
-
         Map<Object, Object> currMap = asMap(token, object);
 
-        while (keys.hasNext()) {
-          Object key = keys.next();
-          boolean isEnd = !keys.hasNext();
-          // set the currMap
-          if (isEnd) currMap.put(key, value);
-          else {
-            Object nextMap = currMap.get(key);
-            if (nextMap instanceof Map<?, ?>) currMap = (Map<Object, Object>) nextMap;
-            else token.error("Expected a map but got " + nextMap + " at key " + key);
-          }
-        }
-        return null;
+        setValueAtKeyPath(keys, currMap, value);
+        return value;
       }
     });
 
@@ -180,10 +157,100 @@ public class DictModule extends Module {
       @Override
       public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
         Map<Object, Object> ourMap = asMap(token, object);
-        Map<Object, Object> intoMap = asMap(token, object);
+        Map<Object, Object> intoMap = asMap(token, args.get(0).accept(runtime));
         intoMap.putAll(ourMap);
         return intoMap;
       }
     });
+
+    defineFunc("wallAll", 0, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return WALK_ALL;
+      }
+    });
   }
+
+  private static int keyToIndexSafe(Object key) {
+    if (key instanceof RNumber) {
+      return ((RNumber) key).number.intValue() - 1;
+    } else {
+      try {
+        return Integer.parseInt(key.toString()) - 1;
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    return -1;
+  }
+
+  private static int keyToIndex(Object key) {
+    int index = keyToIndexSafe(key);
+    if (index == -1) {
+      throw new NumberFormatException("Wrong lookup request, expected type index, but got " + key);
+    }
+    return index;
+  }
+
+  private static Object lookupTargetForKey(Object target, Object key) {
+    if (target instanceof RDict) {
+      return ((RDict) target).get(key);
+    } else if (target instanceof RList) {
+      return ((RList) target).get(keyToIndex(key));
+    } else {
+      throw new IllegalArgumentException("Invalid value in path, got type " + target.getClass().getSimpleName());
+    }
+  }
+
+  private static void setValueAtKeyPath(RList keys, Object target, Object value) {
+    if (keys.isEmpty()) return;
+    Iterator<?> it = keys.iterator();
+    while (it.hasNext()) {
+      Object key = it.next();
+      if (it.hasNext()) {
+        target = lookupTargetForKey(target, key);
+      } else {
+        if (target instanceof RDict) {
+          ((RDict) target).put(key, value);
+        } else if (target instanceof RList) {
+          // TODO:
+          //  Pair access might be unstable
+          RList list = (RList) target;
+          int index = keyToIndex(key);
+          if (index != -1) {
+            list.set(index, value);
+          } else {
+            if (list.get(0).equals(key)) list.set(1, value);
+          }
+        } else {
+          throw new IllegalArgumentException("Invalid value in path, got type " + target.getClass().getSimpleName());
+        }
+      }
+    }
+  }
+
+  private static Object getValueAtKeyPath(RList keys, Object target) {
+    for (Object currKey : keys) {
+      if (target instanceof RDict) {
+        target = ((RDict) target).get(currKey);
+      } else if (target instanceof RList) {
+        RList list = (RList) target;
+        // TODO: pair access may be unstable
+        int index = keyToIndexSafe(currKey);
+        if (index != -1) {
+          return list.get(index);
+        } else if (list.size() == 2 && list.get(0).equals(currKey)) {
+          return list.get(1);
+        }
+        target = ((RList) target).get(keyToIndex(currKey));
+      }
+    }
+    return target;
+  }
+
+  public final Object WALK_ALL = new Object() {
+    @Override
+    public String toString() {
+      return "ALL_ITEMS";
+    }
+  };
 }
