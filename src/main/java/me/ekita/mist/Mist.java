@@ -6,17 +6,15 @@ import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.syntax.Lexer;
 import me.ekita.mist.syntax.Token;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 public class Mist {
   public static void main(String[] args) {
 
 
-    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/temp_exec.m";
+    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/list_sort_test.m";
     try (FileInputStream fis = new FileInputStream(filePath)) {
       byte[] bytes = new byte[fis.available()];
       fis.read(bytes);

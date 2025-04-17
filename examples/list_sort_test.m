@@ -1,0 +1,1 @@
+Sys.println(["Cat", "cat", 1].sort())

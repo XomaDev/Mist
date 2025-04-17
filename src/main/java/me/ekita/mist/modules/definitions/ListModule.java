@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static me.ekita.mist.modules.ModuleHelper.asList;
 import static me.ekita.mist.modules.ModuleHelper.asString;
+import static me.ekita.mist.runtime.TypeSystem.typeOrderIndex;
 
 public class ListModule extends Module {
 
@@ -234,8 +235,21 @@ public class ListModule extends Module {
       }
     });
 
-    // TODO: Define Method: Make a List sorted
-    //  We'll need to study how they have implemented the sorting mechanism
+    defineMethod("sort", 0, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        RList list = new RList(asList(token, object));
+        Collections.sort(list, new Comparator<Object>() {
+          @Override
+          public int compare(Object l, Object r) {
+            Object comparison = TypeSystem.compare(l, r);
+            if (comparison instanceof String) return Integer.compare(typeOrderIndex(l), typeOrderIndex(r));
+            return (int) comparison;
+          }
+        });
+        return list;
+      }
+    });
 
     defineTransformer("map", new ModTransformer() {
       @Override

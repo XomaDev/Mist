@@ -95,4 +95,15 @@ public class TypeSystem {
     if (left instanceof String) return ((String) left).compareTo((String) right);
     return "Cannot compare values of type " + left.getClass().getSimpleName();
   }
+
+
+  public static int typeOrderIndex(Object value) {
+    if (value instanceof Boolean) return 0;
+    if (value instanceof Number) return 1;
+    if (value instanceof String) return 2;
+    if (value instanceof RList) return 3;
+    if (value instanceof RDict) return 4;
+    return 10;
+  }
+
 }
