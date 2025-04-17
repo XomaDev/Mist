@@ -23,7 +23,7 @@ public class TypeSystem {
    * This might be "true" but as a string.
    * Or "123" which is a string, but has numeric content.
    */
-  public static Object unwrapContent(Object value) {
+  public static Object trueValue(Object value) {
     if (value instanceof RNumber) {
       return ((RNumber) value).doubleValue();
     }
@@ -66,8 +66,8 @@ public class TypeSystem {
 
   public static boolean contentEquals(Object left, Object right) {
     if (left == null || right == null) return left == right;
-    left = unwrapContent(left);
-    right = unwrapContent(right);
+    left = trueValue(left);
+    right = trueValue(right);
     // now we do not worry about type discrepancies
     if (left.getClass() != right.getClass()) return false;
     if (left instanceof RList && right instanceof RList) return listEquals((RList) left, (RList) right);
@@ -84,8 +84,8 @@ public class TypeSystem {
 
   public static Object compare(Object left, Object right) {
     if (left == null || right == null) return "Null values provided for comparison!";
-    left = unwrapContent(left);
-    right = unwrapContent(right);
+    left = trueValue(left);
+    right = trueValue(right);
     if (left.getClass() != right.getClass()) {
       return "Cannot compare values of different types! (" + left.getClass().getSimpleName() + " and " + right.getClass().getSimpleName() + ")";
     }

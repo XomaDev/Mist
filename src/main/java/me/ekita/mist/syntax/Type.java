@@ -43,6 +43,7 @@ public enum Type {
   WHEN,
   FUN,
   ON,
+  ANY,
 
   RETURN, BREAK, CONTINUE,
 
@@ -120,6 +121,7 @@ public enum Type {
       put("while", new StaticToken(WHILE));
       put("fun", new StaticToken(FUN));
       put("on", new StaticToken(ON));
+      put("any", new StaticToken(ANY));
     }};
   }
 }

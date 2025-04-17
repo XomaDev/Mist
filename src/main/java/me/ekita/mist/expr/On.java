@@ -8,6 +8,7 @@ import java.util.List;
 public class On extends Expr {
 
   public final String component, name;
+  public final boolean anyEvent;
   public final List<String> parameters;
   public final Expr content;
   public final boolean requireScope;
@@ -15,12 +16,14 @@ public class On extends Expr {
   public On(@Nullable Token token,
             String component,
             String event,
+            boolean anyEvent,
             List<String> parameters,
             Expr content,
             boolean requireScope) {
     super(token);
     this.component = component;
     this.name = event;
+    this.anyEvent = anyEvent;
     this.parameters = parameters;
     this.content = content;
     this.requireScope = requireScope;

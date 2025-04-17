@@ -7,6 +7,7 @@ import me.ekita.mist.modules.ModMethod;
 import me.ekita.mist.modules.ModTransformer;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
+import me.ekita.mist.runtime.TypeSystem;
 import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
@@ -214,6 +215,24 @@ public class ListModule extends Module {
         return list.subList(from - 1, to - 1);
       }
     });
+    defineMethod("lookupPair", 2, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        List<Object> list = asList(token, object);
+        Object key = args.get(0).accept(runtime);
+        Object notFound = args.get(1).accept(runtime);
+
+        for (Object element : list) {
+          if (!(element instanceof List<?>)) token.error(list + " is not a well-formed list of pairs");
+          List<Object> pairs = (List<Object>) element;
+          if (pairs.size() != 2) token.error(list + " is not a well-formed list of pairs");
+          if (TypeSystem.contentEquals(pairs.get(0), key)) {
+            return pairs.get(1);
+          }
+        }
+        return notFound;
+      }
+    });
 
     // TODO: Define Method: Make a List sorted
     //  We'll need to study how they have implemented the sorting mechanism
@@ -332,7 +351,7 @@ public class ListModule extends Module {
         return null;
       }
     });
-    defineTransformer("sortMin", new ModTransformer() {
+    defineTransformer("min", new ModTransformer() {
       @Override
       public Object transform(Token token,
                               final Evaluator runtime,
@@ -356,7 +375,7 @@ public class ListModule extends Module {
         return elements.isEmpty() ? elements : elements.get(0);
       }
     });
-    defineTransformer("sortMax", new ModTransformer() {
+    defineTransformer("max", new ModTransformer() {
       @Override
       public Object transform(Token token,
                               final Evaluator runtime,

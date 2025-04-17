@@ -60,6 +60,7 @@ public class ParserX {
 
   private On onSmt(Token token) {
     // on Button1.Click() {}
+    final boolean anyEvent = consume(Type.ANY);
     final String component = readAlpha();
     expect(Type.DOT);
     final String event = readAlpha();
@@ -67,7 +68,7 @@ public class ParserX {
     final List<String> params = parameters();
     final Expr content = bodyOrSmt();
     final boolean requireScope = manager.leaveScope(false);
-    return new On(token, component, event, params, content, requireScope);
+    return new On(token, component, event, anyEvent, params, content, requireScope);
   }
 
   private Function funSmt(Token token) {
@@ -89,7 +90,6 @@ public class ParserX {
       manager.defineVr(aParam);
       params.add(aParam);
       if (!consume(Type.COMMA)) break;
-      skip();
     }
     expect(Type.CLOSE_CURVE);
     return params;
@@ -301,7 +301,6 @@ public class ParserX {
     // [1, 2, 3]
     final List<Expr> elements = new ArrayList<>();
     while (notEOF() && !isNext(Type.CLOSE_SQUARE)) {
-      System.out.println("Done " + elements);
       elements.add(parseSmt());
       if (!consume(Type.COMMA)) break;
     }
@@ -315,7 +314,6 @@ public class ParserX {
     while (notEOF() && !isNext(Type.CLOSE_CURLY)) {
       entries.add(parsePair());
       if (!consume(Type.COMMA)) break;
-      skip();
     }
     expect(Type.CLOSE_CURLY);
     return new MakeDict(token, entries);
@@ -350,7 +348,6 @@ public class ParserX {
     while (notEOF() && !isNext(Type.CLOSE_CURVE)) {
       arguments.add(parseSmt());
       if (!consume(Type.COMMA)) break;
-      skip();
     }
     expect(Type.CLOSE_CURVE);
     return arguments;
@@ -378,7 +375,7 @@ public class ParserX {
   }
 
   private boolean isNext(Type type) {
-    return tokens.get(index).type == type;
+    return notEOF() && tokens.get(index).type == type;
   }
 
   private void back() {
