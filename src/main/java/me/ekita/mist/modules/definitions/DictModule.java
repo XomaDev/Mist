@@ -10,9 +10,7 @@ import me.ekita.mist.runtime.structs.RList;
 import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static me.ekita.mist.modules.ModuleHelper.asList;
 import static me.ekita.mist.modules.ModuleHelper.asMap;
@@ -169,6 +167,15 @@ public class DictModule extends Module {
         return WALK_ALL;
       }
     });
+
+    defineMethod("walk", 1, new ModMethod() {
+      @Override
+      public Object call(Token token, Evaluator runtime, Object object, List<Expr> args) {
+        RDict dict = (RDict) asMap(token, object);
+        RList list = (RList) asList(token, args.get(0).accept(runtime));
+        return walkKeyPath(dict, list, 0, new RList());
+      }
+    });
   }
 
   private static int keyToIndexSafe(Object key) {
@@ -247,7 +254,44 @@ public class DictModule extends Module {
     return target;
   }
 
-  public final Object WALK_ALL = new Object() {
+  private static Collection<Object> allOf(Object object) {
+    if (object instanceof RDict) {
+      return ((RDict) object).values();
+    } else if (object instanceof RList) {
+      return (RList) object;
+    }
+    return Collections.emptyList();
+  }
+
+  private static List<Object> walkKeyPath(Object root, RList keys, int currIndex, List<Object> result) {
+    if (keys.isEmpty()) {
+      if (result != null) result.add(root);
+      return result;
+    } else if (root == null) {
+      return result;
+    }
+
+    Object currentKey = keys.get(currIndex++);
+    if (currentKey == WALK_ALL) {
+      for (Object child: allOf(root)) {
+        walkKeyPath(child, keys, currIndex, result);
+      }
+    } else if (root instanceof RDict) {
+      walkKeyPath(((RDict) root).get(currentKey), keys, currIndex, result);
+    } else if (root instanceof RList) {
+      RList list = (RList) root;
+      int index = keyToIndex(currentKey);
+      if (index != -1) {
+        try {
+          walkKeyPath(list.get(index), keys, currIndex, result);
+        } catch (Exception ignored) {
+        }
+      }
+    }
+    return result;
+  }
+
+  public static final Object WALK_ALL = new Object() {
     @Override
     public String toString() {
       return "ALL_ITEMS";
