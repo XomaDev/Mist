@@ -1,1 +1,0 @@
-Color.someProp = "Hola World!"

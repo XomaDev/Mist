@@ -13,7 +13,7 @@ import me.ekita.mist.syntax.Type;
 
 import java.util.*;
 
-import static me.ekita.mist.runtime.MistEquality.contentEquals;
+import static me.ekita.mist.runtime.TypeSystem.contentEquals;
 
 public class Evaluator implements Expr.Visitor<Object> {
 
@@ -179,7 +179,7 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   private int mathCompare(Token token, String operator, Expr left, Expr right) {
-    Object result = MistEquality.compare(left.accept(this), right.accept(this));
+    Object result = TypeSystem.compare(left.accept(this), right.accept(this));
     if (result instanceof String)
       token.error("Cannot apply operator '" + operator + "': " + result); // indicates an error
     return (int) result;

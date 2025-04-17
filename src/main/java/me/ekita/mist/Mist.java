@@ -1,5 +1,6 @@
 package me.ekita.mist;
 
+import me.ekita.mist.analysis.ParserX;
 import me.ekita.mist.expr.Statements;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.syntax.Lexer;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public class Mist {
   public static void main(String[] args) {
-    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/text_compare.m";
+    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/lists.m";
     try (FileInputStream fis = new FileInputStream(filePath)) {
       byte[] bytes = new byte[fis.available()];
       fis.read(bytes);
@@ -19,7 +20,7 @@ public class Mist {
 
       List<Token> tokens = new Lexer(content).tokens;
       System.out.println(tokens);
-      Statements statements = new Parser(tokens).parse();
+      Statements statements = new ParserX(tokens).parse();
 
       long start = System.currentTimeMillis();
       new Evaluator().statements(statements);

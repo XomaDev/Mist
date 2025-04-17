@@ -1,1 +1,0 @@
-Sys.println(List.fromCsvRow("a, b, c, d, e, f").slice(2, 5))

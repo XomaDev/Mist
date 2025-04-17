@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RNumber {
 
-  private final Number number;
+  public final Number number;
 
   public RNumber(Number number) {
     this.number = number;

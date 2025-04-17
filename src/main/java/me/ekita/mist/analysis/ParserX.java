@@ -14,10 +14,11 @@ public class ParserX {
 
   private final List<Token> tokens;
   private int index = 0;
-  private final int size = 0;
+  private int size = 0;
 
   public ParserX(List<Token> tokens) {
     this.tokens = tokens;
+    this.size = tokens.size();
   }
 
   public Statements parse() {
@@ -229,6 +230,7 @@ public class ParserX {
       manager.defineVr(param);
       params.add(param);
     } while (notEOF() && consume(Type.COMMA));
+    expect(Type.RIGHT_ARROW);
     final List<Expr> body = new ArrayList<>();
     while (notEOF() && !isNext(Type.CLOSE_CURLY)) body.add(parseSmt());
     expect(Type.CLOSE_CURLY);
@@ -299,9 +301,9 @@ public class ParserX {
     // [1, 2, 3]
     final List<Expr> elements = new ArrayList<>();
     while (notEOF() && !isNext(Type.CLOSE_SQUARE)) {
+      System.out.println("Done " + elements);
       elements.add(parseSmt());
       if (!consume(Type.COMMA)) break;
-      skip();
     }
     expect(Type.CLOSE_SQUARE);
     return new MakeList(token, elements);

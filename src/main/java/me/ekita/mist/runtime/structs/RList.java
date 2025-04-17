@@ -1,6 +1,6 @@
 package me.ekita.mist.runtime.structs;
 
-import me.ekita.mist.runtime.MistEquality;
+import me.ekita.mist.runtime.TypeSystem;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
@@ -20,13 +20,15 @@ public class RList extends ArrayList<Object> {
   @Override
   public String toString() {
     JSONArray elements = new JSONArray();
-    for (Object element: this) elements.put(element);
+    for (Object element: this) {
+      elements.put(TypeSystem.nakedValue(element));
+    }
     return elements.toString();
   }
 
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof RList)) return false;
-    return MistEquality.listEquals(this, (RList) o);
+    return TypeSystem.listEquals(this, (RList) o);
   }
 }
