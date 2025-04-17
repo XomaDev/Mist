@@ -21,7 +21,7 @@ public class ScopeManager {
     if (currentScope.parent == null) throw new RuntimeException("Reached super scope");
     currentScope = currentScope.parent;
     if (isIter) iterativeScopes--;
-    return imaginaryScope;
+    return !imaginaryScope;
   }
 
   public void defineVr(String name) {

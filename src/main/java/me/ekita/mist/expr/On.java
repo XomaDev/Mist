@@ -8,15 +8,22 @@ import java.util.List;
 public class On extends Expr {
 
   public final String component, name;
-  public final List<String> paramNames;
-  public final Expr body;
+  public final List<String> parameters;
+  public final Expr content;
+  public final boolean requireScope;
 
-  public On(@Nullable Token token, String component, String name, List<String> paramNames, Expr body) {
+  public On(@Nullable Token token,
+            String component,
+            String event,
+            List<String> parameters,
+            Expr content,
+            boolean requireScope) {
     super(token);
     this.component = component;
-    this.name = name;
-    this.paramNames = paramNames;
-    this.body = body;
+    this.name = event;
+    this.parameters = parameters;
+    this.content = content;
+    this.requireScope = requireScope;
   }
 
   @Override
@@ -29,7 +36,7 @@ public class On extends Expr {
     return "On{" +
         "component='" + component + '\'' +
         ", name='" + name + '\'' +
-        ", paramNames=" + paramNames +
+        ", params=" + parameters +
         '}';
   }
 }

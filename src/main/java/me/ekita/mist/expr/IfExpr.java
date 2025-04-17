@@ -2,17 +2,21 @@ package me.ekita.mist.expr;
 
 import me.ekita.mist.syntax.Token;
 
+import java.util.List;
+
 public class IfExpr extends Expr {
 
-  public final Expr condition;
-  public final Expr thenExpr;
-  public final Expr elseExpr;
+  public final List<Expr> conditions, bodies;
+  public final List<Boolean> requiresScopes;
 
-  public IfExpr(Token token, Expr condition, Expr thenExpr, Expr elseExpr) {
+  public IfExpr(Token token,
+                List<Expr> conditions,
+                List<Expr> bodies,
+                List<Boolean> requiresScopes) {
     super(token);
-    this.condition = condition;
-    this.thenExpr = thenExpr;
-    this.elseExpr = elseExpr;
+    this.conditions = conditions;
+    this.bodies = bodies;
+    this.requiresScopes = requiresScopes;
   }
 
   @Override
@@ -23,9 +27,8 @@ public class IfExpr extends Expr {
   @Override
   public String toString() {
     return "IfExpr{" +
-        "condition=" + condition +
-        ", thenExpr=" + thenExpr +
-        ", elseExpr=" + elseExpr +
+        "conditions=" + conditions +
+        ", bodies=" + bodies +
         '}';
   }
 }

@@ -11,10 +11,7 @@ import me.ekita.mist.runtime.structs.RNumber;
 import me.ekita.mist.syntax.Token;
 import me.ekita.mist.syntax.Type;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static me.ekita.mist.runtime.MistEquality.contentEquals;
 
@@ -233,34 +230,46 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
-  public Object ifExpr(IfExpr ifExpr) {
-    boolean result = boolExpr(ifExpr.token, ifExpr.condition);
-    Expr thenBody = ifExpr.thenExpr;
-    Expr elseBody = ifExpr.elseExpr;
+  public Object ifExpr(IfExpr expr) {
+    final Iterator<Expr> condIter = expr.conditions.iterator();
+    final Iterator<Expr> bodyIter = expr.bodies.iterator();
+    final Iterator<Boolean> requiresScopesIter = expr.requiresScopes.iterator();
 
-    Object exprResult = null;
-    if (result) {
-      memory.enterScope();
-      exprResult = thenBody.accept(this);
-      memory.leaveScope();
-    } else if (elseBody != null) {
-      memory.enterScope();
-      exprResult = elseBody.accept(this);
-      memory.leaveScope();
+    // evaluate if and elif clauses
+    do {
+      final boolean condition = boolExpr(condIter.next());
+      final Expr body = bodyIter.next();
+      final boolean requireScope = requiresScopesIter.next();
+      if (condition) {
+        if (requireScope) memory.enterScope();
+        final Object result = body.accept(this);
+        if (requireScope) memory.leaveScope();
+        return result;
+      }
+    } while (condIter.hasNext());
+    if (bodyIter.hasNext()) {
+      // an else clause...
+      final Expr body = bodyIter.next();
+      final boolean requireScope = requiresScopesIter.next();
+      if (requireScope) memory.enterScope();
+      final Object result = body.accept(this);
+      if (requireScope) memory.leaveScope();
+      return result;
     }
-    return exprResult;
+    return 0;
   }
 
   @Override
   public Object whileLoop(While l) {
-    Expr condition = l.condition;
+    final boolean requireScope = l.newScope;
+    final Expr condition = l.condition;
     int numIterations = 0;
     whileLoop:
     while (boolExpr(l.token, condition)) {
       numIterations++;
-      memory.enterScope();
+      if (requireScope) memory.enterScope();
       Object result = l.body.accept(this);
-      memory.leaveScope();
+      if (requireScope) memory.leaveScope();
 
       if (result instanceof Interrupt) {
         switch (((Interrupt) result).type) {
@@ -416,21 +425,21 @@ public class Evaluator implements Expr.Visitor<Object> {
     int argsSize = args.size();
 
     Function func = functions.get(argsSize + call.name);
-    List<String> paramNames = func.parameterNames;
+    List<String> paramNames = func.parameters;
 
     Object[] evaluatedArgs = new Object[argsSize];
     for (int i = 0; i < argsSize; i++) {
       evaluatedArgs[i] = unboxEval(args.get(i));
     }
 
-    memory.enterScope();
+    if (func.requireScope) memory.enterScope();
     for (int i = 0; i < argsSize; i++) {
       String paramName = paramNames.get(i);
       Object value = evaluatedArgs[i];
       memory.declareVar(false, paramName, value);
     }
-    Object callResult = unboxEval(func.body);
-    memory.leaveScope();
+    Object callResult = unboxEval(func.content);
+    if (func.requireScope) memory.leaveScope();
     return callResult;
   }
 
@@ -448,29 +457,33 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object objectCall(ObjectCall call) {
-    Object object = unboxEval(call.object);
-    String moduleName = getModuleName(call.token, object);
-    String methodName = call.methodName;
+    final Object o = unboxEval(call.object);
+    final String moduleName = getModuleName(call.token, o);
+    final String methodName = call.methodName;
 
-    Module module = modules.get(moduleName);
+    final Module module = modules.get(moduleName);
     if (module == null)
       return call.token.error("Cannot find module " + moduleName);
-    ModMethod method = module.getMethod(methodName, call.arguments.size());
+    final ModMethod method = module.getMethod(methodName, call.arguments.size());
     if (method == null)
       return call.token.error("Cannot find object method " + methodName + "() of arg size "
           + call.arguments.size() + " in module " + moduleName);
-    return method.call(call.token, this, object, call.arguments);
+    return method.call(call.token, this, o, call.arguments);
   }
 
   @Override
   public Object transformCall(TransformCall call) {
-    Module module = modules.get(call.moduleName);
+    final Object o = unboxEval(call.object);
+    final String moduleName = getModuleName(call.token, o);
+    final String transformerName = call.transformerName;
+
+    final Module module = modules.get(moduleName);
     if (module == null)
-      return call.token.error("Cannot find module " + call.moduleName);
-    ModTransformer transformer = module.getTransformer(call.transformerName);
+      return call.token.error("Cannot find module " + moduleName);
+    final ModTransformer transformer = module.getTransformer(transformerName);
     if (transformer == null)
-      return call.token.error("Cannot find transformer '" + call.transformerName + "' in module " + call.moduleName);
-    return transformer.transform(call.token, this, call.arguments, call.paramNames, call.body);
+      return call.token.error("Cannot find object transformer " + transformer + "() in module " + moduleName);
+    return transformer.transform(call.token, this, o, call.arguments, call.paramNames, call.body);
   }
 
   private String getModuleName(Token token, Object value) {
@@ -484,7 +497,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   @Override
   public Object function(Function func) {
-    functions.put(func.parameterNames.size() + func.name, func);
+    functions.put(func.parameters.size() + func.name, func);
     return null;
   }
 

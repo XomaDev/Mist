@@ -6,23 +6,23 @@ import java.util.List;
 
 public class TransformCall extends Expr {
 
-  public final String moduleName;
+  public final Expr object;
   public final String transformerName;
   public final List<Expr> arguments;
   public final List<String> paramNames;
   public final Expr body;
 
   public TransformCall(Token token,
-                       String moduleName,
+                       Expr object,
                        String transformerName,
                        List<Expr> arguments,
-                       List<String> paramNames,
+                       List<String> parameters,
                        Expr body) {
     super(token);
-    this.moduleName = moduleName;
+    this.object = object;
     this.transformerName = transformerName;
     this.arguments = arguments;
-    this.paramNames = paramNames;
+    this.paramNames = parameters;
     this.body = body;
   }
 
@@ -34,7 +34,7 @@ public class TransformCall extends Expr {
   @Override
   public String toString() {
     return "TransformCall{" +
-        "moduleName='" + moduleName + '\'' +
+        "object=" + object +
         ", transformerName='" + transformerName + '\'' +
         ", arguments=" + arguments +
         ", paramNames=" + paramNames +

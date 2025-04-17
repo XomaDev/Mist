@@ -222,10 +222,11 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames,
                               Expr body) {
-        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        List<Object> elements = asList(token, o);
         List<Object> transformedElements = new RList();
         String eachElementName = paramNames.get(0);
 
@@ -243,10 +244,11 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames,
                               Expr body) {
-        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        List<Object> elements = asList(token, o);
         List<Object> filteredElements = new RList();
         String eachElementName = paramNames.get(0);
 
@@ -264,11 +266,12 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames,
                               Expr body) {
-        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
-        Object answerSoFar = arguments.get(1).accept(runtime);
+        List<Object> elements = asList(token, o);
+        Object answerSoFar = arguments.get(0).accept(runtime);
 
         String eachElementName = paramNames.get(0), answerSoFarName = paramNames.get(1);
         for (Object element : elements) {
@@ -285,10 +288,11 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               final Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames,
                               final Expr body) {
-        List<Object> elements = new RList(asList(token, arguments.get(0).accept(runtime)));
+        List<Object> elements = new RList(asList(token, o));
         final String firstElementName = paramNames.get(0), secondElementName = paramNames.get(1);
         Collections.sort(elements, new Comparator<Object>() {
           @Override
@@ -308,9 +312,10 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames, Expr body) {
-        List<Object> elements = asList(token, arguments.get(0).accept(runtime));
+        List<Object> elements = asList(token, o);
         List<Pair<Object, Object>> pairs = new ArrayList<>();
         String eachElementName = paramNames.get(0);
 
@@ -331,10 +336,11 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               final Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames,
                               final Expr body) {
-        List<Object> elements = new RList(asList(token, arguments.get(0).accept(runtime)));
+        List<Object> elements = new RList(asList(token, o));
         final String firstElementName = paramNames.get(0), secondElementName = paramNames.get(1);
         Collections.sort(elements, new Comparator<Object>() {
           @Override
@@ -354,10 +360,11 @@ public class ListModule extends Module {
       @Override
       public Object transform(Token token,
                               final Evaluator runtime,
+                              Object o,
                               List<Expr> arguments,
                               List<String> paramNames,
                               final Expr body) {
-        List<Object> elements = new RList(asList(token, arguments.get(0).accept(runtime)));
+        List<Object> elements = new RList(asList(token, o));
         final String firstElementName = paramNames.get(0), secondElementName = paramNames.get(1);
         Collections.sort(elements, new Comparator<Object>() {
           @Override

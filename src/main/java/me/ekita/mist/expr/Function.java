@@ -7,17 +7,20 @@ import java.util.List;
 public class Function extends Expr {
 
   public final String name;
-  public final List<String> parameterNames;
-  public final Expr body;
+  public final List<String> parameters;
+  public final Expr content;
+  public final boolean requireScope;
 
   public Function(Token token,
                   String name,
-                  List<String> parameterNames,
-                  Expr body) {
+                  List<String> parameters,
+                  Expr content,
+                  boolean requireScope) {
     super(token);
     this.name = name;
-    this.parameterNames = parameterNames;
-    this.body = body;
+    this.parameters = parameters;
+    this.content = content;
+    this.requireScope = requireScope;
   }
 
   @Override
@@ -29,8 +32,8 @@ public class Function extends Expr {
   public String toString() {
     return "Function{" +
         "name='" + name + '\'' +
-        ", parameterNames=" + parameterNames +
-        ", body=" + body +
+        ", params=" + parameters +
+        ", body=" + content +
         '}';
   }
 }

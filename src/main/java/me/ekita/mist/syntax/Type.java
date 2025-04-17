@@ -1,5 +1,7 @@
 package me.ekita.mist.syntax;
 
+import me.ekita.mist.expr.InterruptSmt;
+
 import java.util.HashMap;
 
 public enum Type {
@@ -28,7 +30,7 @@ public enum Type {
   ALPHA,
   M_TRUE, M_FALSE,
 
-  VAR, GLOBAL,
+  VAL, GLOBAL,
 
   IF, ELIF, ELSE,
   TO, BY, IN, WITH,
@@ -75,7 +77,7 @@ public enum Type {
       put("::", new StaticToken(Type.DOUBLE_COLON));
       put(":", new StaticToken(Type.COLON));
 
-      put("+", new StaticToken(Type.PLUS, Flag.UNARY, Flag.OPERATOR));
+      put("+", new StaticToken(Type.PLUS, Flag.OPERATOR));
       put("-", new StaticToken(Type.NEGATE, Flag.UNARY, Flag.OPERATOR));
 
       put("->", new StaticToken(Type.RIGHT_ARROW));
@@ -97,7 +99,7 @@ public enum Type {
       put("true", new StaticToken(M_TRUE, Flag.VALUE, Flag.M_BOOL));
       put("false", new StaticToken(M_FALSE, Flag.VALUE, Flag.M_BOOL));
 
-      put("var", new StaticToken(VAR, Flag.CONTEXT));
+      put("val", new StaticToken(VAL, Flag.CONTEXT));
       put("glob", new StaticToken(GLOBAL, Flag.CONTEXT));
 
       put("if", new StaticToken(IF));

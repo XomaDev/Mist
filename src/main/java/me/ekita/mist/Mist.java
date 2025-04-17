@@ -1,6 +1,5 @@
 package me.ekita.mist;
 
-import me.ekita.mist.analysis.Parser;
 import me.ekita.mist.expr.Statements;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.syntax.Lexer;

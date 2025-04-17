@@ -9,6 +9,7 @@ import java.util.List;
 public abstract class ModTransformer {
   public abstract Object transform(Token token,
                                    Evaluator runtime,
+                                   Object object,
                                    List<Expr> arguments,
                                    List<String> paramNames,
                                    Expr body);
