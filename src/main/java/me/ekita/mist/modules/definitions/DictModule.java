@@ -3,6 +3,7 @@ package me.ekita.mist.modules.definitions;
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
+import me.ekita.mist.modules.ModPropGet;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.runtime.structs.RDict;
@@ -161,9 +162,9 @@ public class DictModule extends Module {
       }
     });
 
-    defineFunc("wallAll", 0, new ModFunction() {
+    definePropGet("walkAll", new ModPropGet() {
       @Override
-      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+      public Object get() {
         return WALK_ALL;
       }
     });
@@ -264,6 +265,10 @@ public class DictModule extends Module {
   }
 
   private static List<Object> walkKeyPath(Object root, RList keys, int currIndex, List<Object> result) {
+    if (currIndex == keys.size()) {
+      if (result != null) result.add(root);
+      return result;
+    }
     if (keys.isEmpty()) {
       if (result != null) result.add(root);
       return result;
@@ -274,6 +279,7 @@ public class DictModule extends Module {
     Object currentKey = keys.get(currIndex++);
     if (currentKey == WALK_ALL) {
       for (Object child: allOf(root)) {
+        System.out.println("Walk child: " + child);
         walkKeyPath(child, keys, currIndex, result);
       }
     } else if (root instanceof RDict) {
