@@ -1,6 +1,9 @@
 plugins {
   id("java")
   kotlin("jvm")
+
+  id("war")
+  id("org.teavm") version("0.11.0")
 }
 
 group = "me.ekita.mist"
@@ -18,9 +21,18 @@ dependencies {
   implementation("org.json:json:20250107")
 }
 
+teavm {
+  js {
+    addedToWebApp = true
+    targetFileName = "mist.js"
+  }
+}
+
 tasks.test {
   useJUnitPlatform()
 }
+
 kotlin {
-  jvmToolchain(8)
+  // While building for Android we'll do it with Java 7/8
+  jvmToolchain(11)
 }

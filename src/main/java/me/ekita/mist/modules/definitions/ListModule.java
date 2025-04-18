@@ -1,6 +1,5 @@
 package me.ekita.mist.modules.definitions;
 
-import javafx.util.Pair;
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
 import me.ekita.mist.modules.ModMethod;
@@ -344,25 +343,34 @@ public class ListModule extends Module {
     defineTransformer("sortKey", new ModTransformer() {
       @Override
       public Object transform(Token token,
-                              Evaluator runtime,
+                              final Evaluator runtime,
                               Object o,
                               List<Expr> arguments,
-                              List<String> paramNames, Expr body) {
+                              List<String> paramNames, final Expr body) {
         List<Object> elements = asList(token, o);
-        List<Pair<Object, Object>> pairs = new ArrayList<>();
+        List<Object[]> pairs = new ArrayList<>();
         String eachElementName = paramNames.get(0);
 
         for (Object element : elements) {
           runtime.memory.enterScope();
           runtime.memory.declareVar(false, eachElementName, element);
           Object key = body.accept(runtime);
-          pairs.add(new Pair<>(key, element));
+          pairs.add(new Object[]{key, element});
           runtime.memory.leaveScope();
         }
-        // TODO: Sort using Collection class, then create new RList and fill in sorted collection values
-        //   and then return it.
-        //   For this we'll first need to figure what sorting mechanism appinventor uses by default
-        return null;
+        Collections.sort(pairs, new Comparator<Object>() {
+          @Override
+          public int compare(Object first, Object second) {
+            Object l = ((Object[]) first)[0];
+            Object r = ((Object[]) second)[0];
+            Object comparison = TypeSystem.compare(l, r);
+            if (comparison instanceof String) return Integer.compare(typeOrderIndex(l), typeOrderIndex(r));
+            return (int) comparison;
+          }
+        });
+        RList sortedElements = new RList();
+        for (Object[] pair : pairs) sortedElements.add(pair[1]);
+        return sortedElements;
       }
     });
     defineTransformer("min", new ModTransformer() {

@@ -2,6 +2,7 @@ package me.ekita.mist.runtime;
 
 import me.ekita.mist.expr.*;
 import me.ekita.mist.modules.*;
+import me.ekita.mist.modules.Module;
 import me.ekita.mist.modules.definitions.*;
 import me.ekita.mist.runtime.memory.Memory;
 import me.ekita.mist.runtime.structs.Interrupt;
