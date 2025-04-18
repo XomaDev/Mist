@@ -2,7 +2,6 @@ package me.ekita.mist.modules.definitions;
 
 import me.ekita.mist.expr.Expr;
 import me.ekita.mist.modules.ModFunction;
-import me.ekita.mist.modules.ModMethod;
 import me.ekita.mist.modules.Module;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.runtime.structs.RNumber;
@@ -11,7 +10,6 @@ import me.ekita.mist.syntax.Token;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static me.ekita.mist.modules.ModuleHelper.asNumber;
 import static me.ekita.mist.modules.ModuleHelper.asString;
 
 
@@ -143,6 +141,112 @@ public class MathModule extends Module {
           return new RNumber(formatted.contains(".") ? Double.parseDouble(formatted) : Long.parseLong(formatted));
         }
         return token.error("Math.format: Places must be a non-negative integer");
+      }
+    });
+    defineFunc("root", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.sqrt(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("abs", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.abs(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("neg", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return runtime.numericExpr(token, args.get(0)).negate();
+      }
+    });
+    defineFunc("log", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.log(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("exp", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.exp(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("round", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.round(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("ceil", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.ceil(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("floor", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.floor(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("degree", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.toDegrees(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("radians", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.toRadians(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+
+    defineFunc("sin", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.sin(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("cos", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.cos(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("tan", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.tan(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("asin", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.asin(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("acos", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.acos(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("atan", 1, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.atan(runtime.numericExpr(token, args.get(0)).doubleValue()));
+      }
+    });
+    defineFunc("atan2", 2, new ModFunction() {
+      @Override
+      public Object call(Token token, Evaluator runtime, List<Expr> args) {
+        return new RNumber(Math.atan2(
+            runtime.numericExpr(token, args.get(0)).doubleValue(),
+            runtime.numericExpr(token, args.get(1)).doubleValue()
+        ));
       }
     });
   }

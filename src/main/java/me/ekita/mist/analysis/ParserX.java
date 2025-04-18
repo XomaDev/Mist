@@ -153,7 +153,7 @@ public class ParserX {
     expect(Type.TO);
     final Expr to = parseSmt();
     expect(Type.BY);
-    final Expr by = parseExpr();
+    final Expr by = parseSmt();
     expect(Type.CLOSE_CURVE);
     Statements body = body();
     manager.leaveScope(true);
@@ -198,7 +198,7 @@ public class ParserX {
       }
       expect(Type.CLOSE_CURVE);
       final Expr body = body();
-      final boolean requireScope = manager.leaveScope(false);
+      manager.leaveScope(false);
       return new VarBody(token, varNames, varValues, body);
     }
     String name = readAlpha();
@@ -284,7 +284,7 @@ public class ParserX {
     if (isEOF()) return value;
     if (value instanceof VarGet && consume(Type.ASSIGNMENT)) {
       final VarGet get = (VarGet) value;
-      return new VarSet(token, false, get.name, get.index, parseExpr());
+      return new VarSet(token, false, get.name, get.index, parseSmt());
     }
     if (!(value instanceof Name)) return value;
     final Name name = (Name) value;
