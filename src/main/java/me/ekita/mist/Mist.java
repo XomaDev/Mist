@@ -1,38 +1,37 @@
 package me.ekita.mist;
 
 import me.ekita.mist.analysis.ParserX;
-import me.ekita.mist.expr.Statements;
 import me.ekita.mist.runtime.Evaluator;
-import me.ekita.mist.syntax.Lexer;
 import me.ekita.mist.syntax.Token;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 
 public class Mist {
   public static void main(String[] args) {
+    final Evaluator evaluator = new Evaluator();
+    final CompletionHelper.Callback callback = new CompletionHelper.Callback() {
+      @Override
+      public void onReady(List<Token> tokens) {
+        Object result = evaluator.statements(new ParserX(tokens).parse());
+        if (result != null) {
+          System.out.println(result);
+        }
+      }
 
+      @Override
+      public void onLexError(String error) {
+        System.err.println(error);
+      }
+    };
+    CompletionHelper helper = new CompletionHelper();
 
-    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/temp_exec.m";
-    try (FileInputStream fis = new FileInputStream(filePath)) {
-      byte[] bytes = new byte[fis.available()];
-      fis.read(bytes);
-      String content = new String(bytes);
-
-      System.out.println(content);
-      System.out.println();
-
-      List<Token> tokens = new Lexer(content).tokens;
-      System.out.println(tokens);
-      Statements statements = new ParserX(tokens).parse();
-
-      long start = System.currentTimeMillis();
-      new Evaluator().statements(statements);
-      long end = System.currentTimeMillis();
-      System.out.println(end - start);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    Scanner scanner = new Scanner(System.in);
+    System.out.print("> ");
+    while (scanner.hasNextLine()) {
+      String line = scanner.nextLine();
+      helper.addLine(callback, line);
+      System.out.print("> ");
     }
   }
 }
