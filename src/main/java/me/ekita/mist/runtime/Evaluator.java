@@ -202,6 +202,25 @@ public class Evaluator implements Expr.Visitor<Object> {
   }
 
   @Override
+  public Object varBody(VarBody body) {
+    final List<String> varNames = body.varNames;
+    final List<Expr> varValues = body.values;
+
+    final int varSize = varValues.size();
+    final Object[] evaluatedValues = new Object[varSize];
+    for (int i = 0; i < varSize; i++) {
+      evaluatedValues[i] = unboxEval(varValues.get(i));
+    }
+    memory.enterScope();
+    for (int i = 0, l = varNames.size(); i < l; i++) {
+      memory.declareVar(false, varNames.get(i), evaluatedValues[i]);
+    }
+    Object result = body.body.accept(this);
+    memory.leaveScope();
+    return result;
+  }
+
+  @Override
   public Object varSet(VarSet set) {
     // We'll get back to this later
     return memory.setVar(set.global, set.name, set.index, unboxEval(set.value));
@@ -389,6 +408,14 @@ public class Evaluator implements Expr.Visitor<Object> {
       }
     }
     return numIterations;
+  }
+
+  @Override
+  public Object doSmt(DoSmt doStmt) {
+    if (doStmt.requireScope) memory.enterScope();
+    doStmt.body.accept(this);
+    if (doStmt.requireScope) memory.leaveScope();
+    return doStmt.result.accept(this);
   }
 
   @Override

@@ -1,14 +1,11 @@
-val myDict = {
-  "people":[{
-    "first_name": "Tim",
-    "last_name": "Beaver"
-  }, {
-    "first_name": "John",
-    "last_name": "Smith"
-  }, {
-    "first_name": "Jane",
-    "last_name": "Doe"
-  }]
-}
+val profit = do {
+  Sys.println("Hola meow!")
+} -> "Hola!"
 
-Sys.println(myDict.walk(["people", 1, Dict.walkAll]))
+fun procedure():
+  val(name = "Ekina") {
+    do {
+      Sys.println("Hola Eki!")
+    } -> name
+  }
+Sys.println(procedure())

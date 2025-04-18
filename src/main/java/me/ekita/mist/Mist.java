@@ -14,7 +14,7 @@ public class Mist {
   public static void main(String[] args) {
 
 
-    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/list_sort_test.m";
+    String filePath = "/var/home/kumaraswamy/IdeaProjects/Mist/examples/temp_exec.m";
     try (FileInputStream fis = new FileInputStream(filePath)) {
       byte[] bytes = new byte[fis.available()];
       fis.read(bytes);

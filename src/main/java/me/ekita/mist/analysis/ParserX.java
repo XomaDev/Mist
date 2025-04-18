@@ -14,7 +14,7 @@ public class ParserX {
 
   private final List<Token> tokens;
   private int index = 0;
-  private int size = 0;
+  private final int size;
 
   public ParserX(List<Token> tokens) {
     this.tokens = tokens;
@@ -42,6 +42,7 @@ public class ParserX {
       case WHILE: return whileSmt(token);
       case FUN: return funSmt(token);
       case ON: return onSmt(token);
+      case DO: return doSmt(token);
       case RETURN: case BREAK: case CONTINUE: return interruptSmt(token);
       default:
         back();
@@ -56,6 +57,15 @@ public class ParserX {
     }
     // return always has a value :)
     return new InterruptSmt(token, Type.RETURN, parseSmt());
+  }
+
+  private DoSmt doSmt(Token token) {
+    manager.enterScope(false);
+    final Statements body = body();
+    final boolean requireScope = manager.leaveScope(false);
+    expect(Type.RIGHT_ARROW);
+    final Expr result = parseSmt();
+    return new DoSmt(token, requireScope, body, result);
   }
 
   private On onSmt(Token token) {
@@ -76,7 +86,7 @@ public class ParserX {
     final String name = readAlpha();
     manager.enterScope(false);
     final List<String> params = parameters();
-    final Expr content = bodyOrSmt();
+    final Expr content = consume(Type.COLON) ? parseSmt() : body();
     final boolean requireScope = manager.leaveScope(false);
     return new Function(token, name, params, content, requireScope);
   }
@@ -172,9 +182,25 @@ public class ParserX {
     return new IfExpr(token, conditions, bodies, requiresScopes);
   }
 
-  private VarSmt varSmt(Token token) {
-    // glob name = "Eki"
-    // val age = 12
+  private Expr varSmt(Token token) {
+    if (token.type == Type.VAL && consume(Type.OPEN_CURVE)) {
+      // It's a var body!
+      manager.enterScope(false);
+      final List<String> varNames = new ArrayList<>();
+      final List<Expr> varValues = new ArrayList<>();
+      while (notEOF() && !isNext(Type.CLOSE_CURVE)) {
+        final String varName = readAlpha();
+        manager.defineVr(varName);
+        varNames.add(varName);
+        expect(Type.ASSIGNMENT);
+        varValues.add(parseSmt());
+        if (!consume(Type.COMMA)) break;
+      }
+      expect(Type.CLOSE_CURVE);
+      final Expr body = body();
+      final boolean requireScope = manager.leaveScope(false);
+      return new VarBody(token, varNames, varValues, body);
+    }
     String name = readAlpha();
     expect(Type.ASSIGNMENT);
     Expr value = parseSmt();

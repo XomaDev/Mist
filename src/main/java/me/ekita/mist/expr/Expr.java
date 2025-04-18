@@ -25,6 +25,7 @@ public abstract class Expr {
     R binary(Binary binary);
 
     R varSmt(VarSmt smt);
+    R varBody(VarBody body);
     R varGet(VarGet get);
     R varSet(VarSet set);
 
@@ -35,6 +36,8 @@ public abstract class Expr {
     R forLoop(For f);
     R forEach(ForEach f);
     R forEachPair(ForEachPair f);
+    R doSmt(DoSmt doStmt);
+
     R interruptSmt(InterruptSmt iSmt);
 
     R propGet(PropGet get);

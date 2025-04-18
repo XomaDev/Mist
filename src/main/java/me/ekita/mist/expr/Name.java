@@ -14,7 +14,7 @@ public class Name extends Expr {
   }
 
   public void invalidate() {
-    throw new RuntimeException("Cannot find symbol '" + value + "'");
+    token.error("Cannot find symbol '" + value + "'");
   }
 
   @Override

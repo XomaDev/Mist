@@ -44,6 +44,8 @@ public enum Type {
   FUN,
   ON,
   ANY,
+  DO,
+  RESULT,
 
   RETURN, BREAK, CONTINUE,
 
@@ -122,6 +124,7 @@ public enum Type {
       put("fun", new StaticToken(FUN));
       put("on", new StaticToken(ON));
       put("any", new StaticToken(ANY));
+      put("do", new StaticToken(DO));
     }};
   }
 }
