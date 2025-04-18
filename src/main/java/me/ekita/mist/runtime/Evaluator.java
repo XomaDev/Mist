@@ -24,6 +24,7 @@ public class Evaluator implements Expr.Visitor<Object> {
 
   public Evaluator() {
     modules.put("Sys", new SysModule());
+    modules.put("Ctrl", new CtrlModule());
     modules.put("Math", new MathModule());
     modules.put("Text", new TextModule());
     modules.put("List", new ListModule());
