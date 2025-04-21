@@ -22,9 +22,16 @@ dependencies {
 }
 
 teavm {
+  all {
+    mainClass = "me.ekita.mist.Mist"
+  }
   js {
-    addedToWebApp = true
+    addedToWebApp = false
     targetFileName = "mist.js"
+  }
+  wasmGC {
+    addedToWebApp = true
+    targetFileName = "mist.wasm"
   }
 }
 

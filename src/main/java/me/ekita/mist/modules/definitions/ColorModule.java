@@ -22,14 +22,15 @@ public class ColorModule extends Module {
         "orange", "yellow", "green",
         "cyan", "blue", "magenta",
         "lightGray", "gray", "darkGray"};
-    final Color[] colors = new Color[] {
-        Color.BLACK, Color.WHITE, Color.RED, Color.PINK,
-        Color.ORANGE, Color.YELLOW, Color.GREEN,
-        Color.CYAN, Color.BLUE, Color.MAGENTA,
-        Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY,
+    final int[] colors = new int[]{
+        -16777216, -1, -65536,
+        -20561, -14336, -256,
+        -16711936, -16711681, -16776961,
+        -65281, -4144960, -8355712,
+        -12566464
     };
     for (int i = 0, l = colorsNames.length; i < l; i++) {
-      final int rgb = colors[i].getRGB();
+      final int rgb = colors[i];
       definePropGet(colorsNames[i], new ModPropGet() {
         @Override
         public Object get() {
