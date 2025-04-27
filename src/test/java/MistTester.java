@@ -23,10 +23,10 @@ public class MistTester {
       System.out.println(tokens);
       Statements statements = new ParserX(tokens).parse();
 
-      long start = System.currentTimeMillis();
-      new Evaluator().statements(statements);
-      long end = System.currentTimeMillis();
-      System.out.println(end - start);
+//      long start = System.currentTimeMillis();
+      System.out.println(new Evaluator().statements(statements));;
+//      long end = System.currentTimeMillis();
+//      System.out.println(end - start);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
