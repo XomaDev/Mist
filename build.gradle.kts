@@ -23,15 +23,11 @@ dependencies {
 
 teavm {
   all {
-    mainClass = "me.ekita.mist.Mist"
+    mainClass = "me.ekita.mist.TeeBridge"
   }
   js {
-    addedToWebApp = false
-    targetFileName = "mist.js"
-  }
-  wasmGC {
     addedToWebApp = true
-    targetFileName = "mist.wasm"
+    targetFileName = "mist.js"
   }
 }
 

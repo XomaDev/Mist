@@ -1,4 +1,3 @@
-import me.ekita.mist.CompletionHelper;
 import me.ekita.mist.analysis.ParserX;
 import me.ekita.mist.runtime.Evaluator;
 import me.ekita.mist.syntax.Token;
