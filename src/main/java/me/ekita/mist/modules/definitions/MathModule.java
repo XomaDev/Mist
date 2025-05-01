@@ -52,7 +52,7 @@ public class MathModule extends Module {
 
         long origin = Math.min(left, right);
         long bound = Math.max(left, right);
-        return new RNumber(ThreadLocalRandom.current().nextDouble(origin, bound));
+        return new RNumber(ThreadLocalRandom.current().nextLong(origin, bound));
       }
     });
     defineFunc("randomFraction", 0, new ModFunction() {
